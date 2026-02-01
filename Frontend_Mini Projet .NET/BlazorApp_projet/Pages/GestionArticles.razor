@@ -1,0 +1,4274 @@
+﻿@page "/gestion-articles"
+@using BlazorApp1.Models
+@using BlazorApp1.Services
+@using System.ComponentModel.DataAnnotations
+@inject IArticleService ArticleService
+@inject ICategoryService CategoryService
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+
+<PageTitle>Gestion des Articles - Système SAV</PageTitle>
+
+<div class="dash-page page-enter">
+    <!-- Background blobs -->
+    <div class="bg-blobs" aria-hidden="true">
+        <span class="blob b1"></span>
+        <span class="blob b2"></span>
+        <span class="blob b3"></span>
+    </div>
+
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <a class="logo" href="/home">
+                        <span class="logo-badge">
+                            <i class="fas fa-boxes icon-float"></i>
+                        </span>
+                        <div class="logo-text">
+                            <h1>Service Après-Vente</h1>
+                            <span class="logo-sub">Gestion des Articles & Stock</span>
+                        </div>
+                    </a>
+                    <nav class="breadcrumb">
+                        <a href="/home">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                        <span class="sep">/</span>
+                        <span class="current">
+                            <i class="fas fa-boxes"></i> Gestion des articles
+                        </span>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <a href="/gestion-categories" class="btn btn-outline" title="Gestion Catégories">
+                        <i class="fas fa-tags me-2"></i>Catégories
+                    </a>
+                    <button type="button" class="logout-btn" title="Déconnexion" @onclick="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="welcome-top">
+                    <div class="welcome-text">
+                        <h2>Gestion des Articles</h2>
+                        <p>Gérez votre catalogue d'articles, le stock et les garanties</p>
+
+                        <div class="welcome-actions">
+                            <button class="btn btn-primary btn-shine" @onclick="ShowCreateModal">
+                                <i class="fas fa-plus-circle icon-float me-2"></i>
+                                Nouvel Article
+                            </button>
+                            <button class="btn btn-outline" @onclick="ToggleStats">
+                                <i class="fas fa-chart-bar icon-float me-2"></i>
+                                Voir les Statistiques
+                            </button>
+                            <NavLink href="/gestion-categories" class="btn btn-outline">
+                                <i class="fas fa-chart-bar icon-float me-2"></i>
+                                Voir les Catégories
+                            </NavLink>
+
+                        </div>
+                    </div>
+
+                    <div class="welcome-mini-cards">
+                        <div class="mini-card" @onclick='() => FilterArticles("all")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-box icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Total Articles</div>
+                                <div class="mini-value">@stats.TotalArticles</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card" @onclick='() => FilterArticles("available")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-check-circle icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Disponibles</div>
+                                <div class="mini-value">@stats.AvailableArticles</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card" @onclick='() => FilterArticles("outofstock")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-times-circle icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Rupture</div>
+                                <div class="mini-value">@stats.OutOfStockArticles</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (showStats)
+                {
+                    <div class="welcome-stats">
+                        <div class="stat-card">
+                            <div class="stat-ico">
+                                <i class="fas fa-money-bill-wave icon-float"></i>
+                            </div>
+                            <div class="stat-meta">
+                                <h3>@stats.TotalStockValue.ToString("C2")</h3>
+                                <p>Valeur totale du stock</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-ico success">
+                                <i class="fas fa-chart-line icon-float"></i>
+                            </div>
+                            <div class="stat-meta">
+                                <h3>@stats.AverageProfitMargin.ToString("F1")%</h3>
+                                <p>Marge moyenne</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-ico info">
+                                <i class="fas fa-shield-alt icon-float"></i>
+                            </div>
+                            <div class="stat-meta">
+                                <h3>@stats.UnderWarrantyCount</h3>
+                                <p>Sous garantie</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-ico warn">
+                                <i class="fas fa-tags icon-float"></i>
+                            </div>
+                            <div class="stat-meta">
+                                <h3>@stats.CategoriesCount</h3>
+                                <p>Catégories</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </section>
+
+            <!-- Search & Filters -->
+            <section class="panel search-section">
+                <div class="search-form">
+                    <div class="search-grid">
+                        <div class="form-group">
+                            <label><i class="fas fa-search"></i> Recherche</label>
+                            <div class="quick-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text"
+                                       placeholder="Référence, désignation..."
+                                       @bind="searchQuery"
+                                       @bind:event="oninput" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-filter"></i> Filtres</label>
+                            <select class="form-select" @bind="selectedFilter">
+                                <option value="all">Tous les articles</option>
+                                <option value="available">Disponibles seulement</option>
+                                <option value="outofstock">En rupture</option>
+                                <option value="recent">Récemment ajoutés</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-tag"></i> Catégorie</label>
+                            <select class="form-select" @bind="selectedCategoryId">
+                                <option value="0">Toutes catégories</option>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.Id">@cat.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-sort"></i> Trier par</label>
+                            <select class="form-select" @bind="sortBy">
+                                <option value="date">Date d'ajout</option>
+                                <option value="name">Nom</option>
+                                <option value="price">Prix</option>
+                                <option value="reference">Référence</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="search-actions">
+                        <button class="btn btn-secondary" @onclick="ResetFilters">
+                            <i class="fas fa-redo me-2"></i>Réinitialiser
+                        </button>
+                        <button class="btn btn-primary" @onclick="LoadArticles">
+                            <i class="fas fa-sync-alt me-2"></i>Actualiser
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Articles Grid -->
+            <section class="panel">
+                <div class="panel-head">
+                    <h2 class="section-title">Catalogue d'Articles</h2>
+                    <div class="table-actions">
+                        <div class="view-toggle">
+                            <button class="btn-icon @(viewMode == "grid" ? "active" : "")"
+                                    @onclick='() => SetViewMode("grid")'
+                                    title="Vue Grille">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+
+                            <button class="btn-icon @(viewMode == "list" ? "active" : "")"
+                                    @onclick='() => SetViewMode("list")'
+                                    title="Vue Liste">
+                                <i class="fas fa-list"></i>
+                            </button>
+
+                        </div>
+                        <button class="btn-icon" title="Exporter" @onclick="ExportArticles">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="btn-icon" title="Actualiser" @onclick="LoadArticles">
+                            <i class="fas fa-redo-alt @(isLoading ? "fa-spin" : "")"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @if (isLoading)
+                {
+                    <div class="loading-state">
+                        <div class="spinner">
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                        </div>
+                        <p>Chargement des articles...</p>
+                    </div>
+                }
+                else if (errorMessage != null)
+                {
+                    <div class="error-state fade-in">
+                        <div class="error-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="error-content">
+                            <h4>Une erreur est survenue</h4>
+                            <p>@errorMessage</p>
+                        </div>
+                        <button class="btn btn-outline" @onclick="LoadArticles">
+                            <i class="fas fa-redo me-2"></i>Réessayer
+                        </button>
+                    </div>
+                }
+                else if (!filteredArticles.Any())
+                {
+                    <div class="empty-state fade-in">
+                        <div class="empty-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <div class="empty-content">
+                            <h4>Aucun article trouvé</h4>
+                            <p>Commencez par créer votre premier article</p>
+                        </div>
+                        <button class="btn btn-primary" @onclick="ShowCreateModal">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Créer un article
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    @if (viewMode == "grid")
+                    {
+                        <!-- Vue Grille (Cartes) -->
+                        <div class="articles-grid slide-up">
+                            @foreach (var article in filteredArticles)
+                            {
+                                <div class="article-card fade-in">
+                                    <div class="article-card-header">
+                                        <div class="article-status @(article.EstDisponible ? "available" : "outofstock")">
+                                            <i class="fas fa-circle"></i>
+                                            @(article.EstDisponible ? "Disponible" : "Rupture")
+                                        </div>
+                                        <div class="article-actions">
+                                            <button class="btn-action edit" @onclick="() => ShowEditModal(article)" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-action delete" @onclick="() => ConfirmDelete(article)" title="Supprimer">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="article-card-body">
+                                        <div class="article-image">
+                                            <i class="fas fa-box"></i>
+                                        </div>
+
+                                        <div class="article-info">
+                                            <h3 class="article-reference">@article.Reference</h3>
+                                            <h4 class="article-designation">@article.Designation</h4>
+
+                                            @if (!string.IsNullOrEmpty(article.Description))
+                                            {
+                                                <p class="article-description">@article.Description</p>
+                                            }
+
+                                            <div class="article-category">
+                                                <i class="fas fa-tag"></i>
+                                                <span>@(article.CategoryName ?? "Non catégorisé")</span>
+                                            </div>
+
+                                            <div class="article-dates">
+                                                <div class="date-item">
+                                                    <i class="fas fa-calendar-plus"></i>
+                                                    <span>Ajouté: @article.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="article-card-footer">
+                                        <div class="price-section">
+                                            <div class="price-row">
+                                                <span>Achat:</span>
+                                                <strong>@article.PrixAchat.ToString("C2")</strong>
+                                            </div>
+                                            <div class="price-row">
+                                                <span>Vente:</span>
+                                                <strong class="text-success">@article.PrixVente.ToString("C2")</strong>
+                                            </div>
+                                            <div class="price-row">
+                                                <span>Marge:</span>
+                                                <strong class="text-info">
+                                                    @{
+                                                        var marge = article.PrixAchat > 0 ?
+                                                        ((article.PrixVente - article.PrixAchat) / article.PrixAchat * 100) : 0;
+                                                    }
+                                                    @marge.ToString("F1")%
+                                                </strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="warranty-section">
+                                            <div class="warranty-badge @(article.DureeGarantieMois > 0 ? "active" : "none")">
+                                                <i class="fas fa-shield-alt"></i>
+                                                <span>@article.DureeGarantieMois mois</span>
+                                            </div>
+                                            <button class="btn-check-warranty"
+                                                    @onclick="() => CheckWarranty(article.Id)"
+                                                    title="Vérifier garantie">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Vue Liste -->
+                        <div class="table-responsive slide-up">
+                            <table class="articles-table">
+                                <thead>
+                                    <tr>
+                                        <th>Référence</th>
+                                        <th>Désignation</th>
+                                        <th>Catégorie</th>
+                                        <th>Prix Vente</th>
+                                        <th>Garantie</th>
+                                        <th>Statut</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var article in filteredArticles)
+                                    {
+                                        <tr class="article-row">
+                                            <td>
+                                                <div class="article-cell">
+                                                    <strong>@article.Reference</strong>
+                                                </div>
+                                            </td>
+                                            <td>@article.Designation</td>
+                                            <td>
+                                                <span class="category-badge">
+                                                    <i class="fas fa-tag"></i>
+                                                    @(article.CategoryName ?? "-")
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="text-success">@article.PrixVente.ToString("C2")</strong>
+                                            </td>
+                                            <td>
+                                                <div class="warranty-indicator @(article.DureeGarantieMois > 0 ? "has-warranty" : "no-warranty")">
+                                                    <i class="fas fa-shield-alt"></i>
+                                                    <span>@article.DureeGarantieMois mois</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge @(article.EstDisponible ? "available" : "outofstock")">
+                                                    @(article.EstDisponible ? "Disponible" : "Rupture")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="actions-cell">
+                                                    <button class="btn-action edit"
+                                                            @onclick="() => ShowEditModal(article)"
+                                                            title="Modifier">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn-action warranty"
+                                                            @onclick="() => CheckWarranty(article.Id)"
+                                                            title="Vérifier garantie">
+                                                        <i class="fas fa-shield-alt"></i>
+                                                    </button>
+                                                    <button class="btn-action delete"
+                                                            @onclick="() => ConfirmDelete(article)"
+                                                            title="Supprimer">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <!-- Summary -->
+                    <div class="table-summary slide-up">
+                        <span class="summary-text">
+                            Affichage de <strong>@filteredArticles.Count</strong> articles
+                            <span class="filter-indicator">
+                                @if (selectedFilter != "all")
+                                {
+                                    <span>
+                                        <i class="fas fa-filter ms-2"></i>
+                                        Filtre: @selectedFilter
+                                    </span>
+                                }
+                                @if (selectedCategoryId > 0)
+                                {
+                                    <span>
+                                        <i class="fas fa-tag ms-2"></i>
+                                        Catégorie: @categories.FirstOrDefault(c => c.Id == selectedCategoryId)?.Name
+                                    </span>
+                                }
+                            </span>
+                        </span>
+                        <div class="summary-actions">
+                            <button class="btn btn-sm btn-outline" @onclick="ResetFilters">
+                                Tout voir
+                            </button>
+                        </div>
+                    </div>
+                }
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-left">
+                    <i class="fas fa-boxes"></i>
+                    Gestion des Articles © @DateTime.Now.Year - Système SAV
+                </p>
+                <div class="footer-right">
+                    <span class="footer-info">
+                        <i class="fas fa-database"></i> @stats.TotalArticles articles
+                    </span>
+                    <span class="footer-info">
+                        <i class="fas fa-money-bill-wave"></i> @stats.TotalStockValue.ToString("C2")
+                    </span>
+                    <span class="footer-info">
+                        <i class="fas fa-clock"></i> @DateTime.Now.ToString("HH:mm")
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL: Create Article -->
+    @if (showCreateModal)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        <h3>Créer un nouvel article</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <EditForm Model="@newArticle" OnValidSubmit="CreateArticle">
+                        <DataAnnotationsValidator />
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="reference" class="form-label">
+                                    <i class="fas fa-barcode"></i> Référence *
+                                </label>
+                                <InputText id="reference" class="form-input" @bind-Value="newArticle.Reference" />
+                                <ValidationMessage For="@(() => newArticle.Reference)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="designation" class="form-label">
+                                    <i class="fas fa-tag"></i> Désignation *
+                                </label>
+                                <InputText id="designation" class="form-input" @bind-Value="newArticle.Designation" />
+                                <ValidationMessage For="@(() => newArticle.Designation)" class="form-error" />
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-align-left"></i> Description
+                                </label>
+                                <InputTextArea id="description" class="form-input" @bind-Value="newArticle.Description" rows="3" />
+                                <ValidationMessage For="@(() => newArticle.Description)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="prixAchat" class="form-label">
+                                    <i class="fas fa-money-bill-wave"></i> Prix d'achat *
+                                </label>
+                                <InputNumber id="prixAchat" class="form-input" @bind-Value="newArticle.PrixAchat" />
+                                <ValidationMessage For="@(() => newArticle.PrixAchat)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="prixVente" class="form-label">
+                                    <i class="fas fa-money-bill"></i> Prix de vente *
+                                </label>
+                                <InputNumber id="prixVente" class="form-input" @bind-Value="newArticle.PrixVente" />
+                                <ValidationMessage For="@(() => newArticle.PrixVente)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dureeGarantie" class="form-label">
+                                    <i class="fas fa-shield-alt"></i> Garantie (mois) *
+                                </label>
+                                <InputNumber id="dureeGarantie" class="form-input" @bind-Value="newArticle.DureeGarantieMois" />
+                                <ValidationMessage For="@(() => newArticle.DureeGarantieMois)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="categoryId" class="form-label">
+                                    <i class="fas fa-tags"></i> Catégorie *
+                                </label>
+                                <select id="categoryId" class="form-select" @bind="newArticle.CategoryId">
+                                    <option value="">Sélectionnez une catégorie</option>
+                                    @foreach (var cat in categories)
+                                    {
+                                        <option value="@cat.Id">@cat.Name</option>
+                                    }
+                                </select>
+                                <ValidationMessage For="@(() => newArticle.CategoryId)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dateMiseEnStock" class="form-label">
+                                    <i class="fas fa-calendar"></i> Date mise en stock
+                                </label>
+                                <InputDate id="dateMiseEnStock" class="form-input" @bind-Value="newArticle.DateMiseEnStock" />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-toggle-on"></i> Disponibilité
+                                </label>
+                                <div class="form-check">
+                                    <input type="checkbox" id="estDisponible" @bind="newArticle.EstDisponible" class="form-check-input" />
+                                    <label for="estDisponible" class="form-check-label">Disponible en stock</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                                Annuler
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isCreating">
+                                @if (isCreating)
+                                {
+                                    <span class="spinner-small me-2"></span>
+                                }
+                                <i class="fas fa-save me-2"></i>
+                                Créer l'article
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- MODAL: Edit Article -->
+    @if (showEditModal && selectedArticle != null)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        <h3>Modifier l'article</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <EditForm Model="@editArticle" OnValidSubmit="UpdateArticle">
+                        <DataAnnotationsValidator />
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editReference" class="form-label">
+                                    <i class="fas fa-barcode"></i> Référence *
+                                </label>
+                                <InputText id="editReference" class="form-input" @bind-Value="editArticle.Reference" />
+                                <ValidationMessage For="@(() => editArticle.Reference)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editDesignation" class="form-label">
+                                    <i class="fas fa-tag"></i> Désignation *
+                                </label>
+                                <InputText id="editDesignation" class="form-input" @bind-Value="editArticle.Designation" />
+                                <ValidationMessage For="@(() => editArticle.Designation)" class="form-error" />
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="editDescription" class="form-label">
+                                    <i class="fas fa-align-left"></i> Description
+                                </label>
+                                <InputTextArea id="editDescription" class="form-input" @bind-Value="editArticle.Description" rows="3" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editPrixAchat" class="form-label">
+                                    <i class="fas fa-money-bill-wave"></i> Prix d'achat *
+                                </label>
+                                <InputNumber id="editPrixAchat" class="form-input" @bind-Value="editArticle.PrixAchat" />
+                                <ValidationMessage For="@(() => editArticle.PrixAchat)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editPrixVente" class="form-label">
+                                    <i class="fas fa-money-bill"></i> Prix de vente *
+                                </label>
+                                <InputNumber id="editPrixVente" class="form-input" @bind-Value="editArticle.PrixVente" />
+                                <ValidationMessage For="@(() => editArticle.PrixVente)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editDureeGarantie" class="form-label">
+                                    <i class="fas fa-shield-alt"></i> Garantie (mois) *
+                                </label>
+                                <InputNumber id="editDureeGarantie" class="form-input" @bind-Value="editArticle.DureeGarantieMois" />
+                                <ValidationMessage For="@(() => editArticle.DureeGarantieMois)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editCategoryId" class="form-label">
+                                    <i class="fas fa-tags"></i> Catégorie *
+                                </label>
+                                <select id="editCategoryId" class="form-select" @bind="editArticle.CategoryId">
+                                    @foreach (var cat in categories)
+                                    {
+                                        <option value="@cat.Id">@cat.Name</option>
+                                    }
+                                </select>
+                                <ValidationMessage For="@(() => editArticle.CategoryId)" class="form-error" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="editDateMiseEnStock" class="form-label">
+                                    <i class="fas fa-calendar"></i> Date mise en stock
+                                </label>
+                                <InputDate id="editDateMiseEnStock" class="form-input" @bind-Value="editArticle.DateMiseEnStock" />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-toggle-on"></i> Disponibilité
+                                </label>
+                                <div class="form-check">
+                                    <input type="checkbox" id="editEstDisponible" @bind="editArticle.EstDisponible" class="form-check-input" />
+                                    <label for="editEstDisponible" class="form-check-label">Disponible en stock</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                                Annuler
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isUpdating">
+                                @if (isUpdating)
+                                {
+                                    <span class="spinner-small me-2"></span>
+                                }
+                                <i class="fas fa-save me-2"></i>
+                                Enregistrer
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- MODAL: Check Warranty -->
+    @if (showWarrantyModal)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <h3>Vérification de garantie</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="warranty-check">
+                        <div class="article-info">
+                            <div class="article-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div>
+                                <h4>@selectedArticle?.Reference</h4>
+                                <p>@selectedArticle?.Designation</p>
+                                <small>Garantie: @selectedArticle?.DureeGarantieMois mois</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-day"></i> Date d'achat *
+                            </label>
+                            <InputDate class="form-input" @bind-Value="warrantyPurchaseDate" />
+                        </div>
+
+                        @if (warrantyResult != null)
+                        {
+                            <div class="warranty-result @(warrantyResult.IsUnderWarranty ? "valid" : "expired")">
+                                <div class="result-icon">
+                                    <i class="fas @(warrantyResult.IsUnderWarranty ? "fa-check-circle" : "fa-times-circle")"></i>
+                                </div>
+                                <div class="result-content">
+                                    <h4>@(warrantyResult.IsUnderWarranty ? "Garantie Valide" : "Garantie Expirée")</h4>
+                                    <p>L'article @(warrantyResult.IsUnderWarranty ? "est" : "n'est pas") couvert par la garantie pour une achat le @warrantyPurchaseDate.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                                Fermer
+                            </button>
+                            <button type="button" class="btn btn-primary" @onclick="PerformWarrantyCheck" disabled="@isCheckingWarranty">
+                                @if (isCheckingWarranty)
+                                {
+                                    <span class="spinner-small me-2"></span>
+                                }
+                                <i class="fas fa-search me-2"></i>
+                                Vérifier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- MODAL: Confirm Delete -->
+    @if (showDeleteConfirm && selectedArticle != null)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header danger">
+                    <div class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <h3>Confirmer la suppression</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="delete-animation">
+                        <div class="trash-icon">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                    </div>
+
+                    <div class="confirmation-message">
+                        <div class="confirmation-title">Supprimer l'article ?</div>
+                        <div class="confirmation-subtitle">
+                            Cette action est définitive. L'article sera supprimé du système.
+                        </div>
+                    </div>
+
+                    <div class="article-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Référence :</span>
+                            <span class="detail-value"><strong>@selectedArticle.Reference</strong></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Désignation :</span>
+                            <span class="detail-value">@selectedArticle.Designation</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Valeur :</span>
+                            <span class="detail-value">@selectedArticle.PrixVente.ToString("C2")</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width mt-3">
+                        <label class="form-label">
+                            <i class="fas fa-keyboard"></i> Tapez "SUPPRIMER" pour confirmer
+                        </label>
+                        <input type="text"
+                               class="form-input"
+                               placeholder="SUPPRIMER"
+                               @bind="deleteConfirmationText"
+                               @oninput="OnDeleteConfirmationChanged" />
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </button>
+                    <button type="button"
+                            class="btn btn-danger"
+                            @onclick="DeleteArticle"
+                            disabled="@(isDeleting || deleteConfirmationText != "SUPPRIMER")">
+                        @if (isDeleting)
+                        {
+                            <span class="spinner-small me-2"></span>
+                        }
+                        <i class="fas fa-trash-alt me-2"></i>
+                        Supprimer définitivement
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Notifications Container -->
+    <div class="notifications-container">
+        @foreach (var notification in notifications)
+        {
+            <div class="notification @notification.Type.ToString().ToLower() @(!notification.IsVisible ? "slide-out" : "")"
+                 data-id="@notification.Id">
+                <div class="notification-icon">
+                    @if (notification.Type == NotificationType.Success)
+                    {
+                        <i class="fas fa-check-circle"></i>
+                    }
+                    else if (notification.Type == NotificationType.Error)
+                    {
+                        <i class="fas fa-exclamation-circle"></i>
+                    }
+                    else if (notification.Type == NotificationType.Warning)
+                    {
+                        <i class="fas fa-exclamation-triangle"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-info-circle"></i>
+                    }
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">@notification.Title</div>
+                    <div class="notification-message">@notification.Message</div>
+                </div>
+                <button class="notification-close" @onclick='() => RemoveNotification(notification.Id)'>
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="notification-progress"></div>
+            </div>
+        }
+    </div>
+</div>
+
+    <style >
+    :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary: #7209b7;
+        --success: #2ecc71;
+        --warning: #f39c12;
+        --info: #3498db;
+        --danger: #e74c3c;
+        --dark: #2d3748;
+        --gray: #718096;
+        --light: #f7f8fb;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --shadow: 0 14px 35px rgba(0,0,0,.10);
+        --radius: 14px;
+        --transition: all .25s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+        background: var(--light);
+        color: var(--dark);
+        line-height: 1.6;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .dash-page {
+        position: relative;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .page-enter {
+        animation: pageEnter .35s ease both;
+    }
+
+    @@keyframes pageEnter {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bg-blobs {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    .blob {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(30px);
+        opacity: .35;
+        animation: blobFloat 10s ease-in-out infinite;
+        background: radial-gradient(circle at 30% 30%, rgba(114,9,183,.55), rgba(67,97,238,.35));
+    }
+
+    .b1 {
+        width: 420px;
+        height: 420px;
+        top: -160px;
+        left: -140px;
+    }
+
+    .b2 {
+        width: 520px;
+        height: 520px;
+        bottom: -220px;
+        right: -220px;
+        animation-delay: .6s;
+    }
+
+    .b3 {
+        width: 320px;
+        height: 320px;
+        top: 25%;
+        right: 20%;
+        opacity: .25;
+        animation-delay: 1.1s;
+    }
+
+    @@keyframes blobFloat {
+        0% {
+            transform: translateY(0) translateX(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-18px) translateX(10px) scale(1.03);
+        }
+
+        100% {
+            transform: translateY(0) translateX(0) scale(1);
+        }
+    }
+
+    .icon-float {
+        display: inline-block;
+        animation: iconFloat 3.2s ease-in-out infinite;
+    }
+
+    @@keyframes iconFloat {
+        0% {
+            transform: translateY(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-3px) scale(1.06);
+        }
+
+        100% {
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .dashboard-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(226,232,240,.8);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.4rem;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .logo-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(67,97,238,.22);
+    }
+
+    .logo-text h1 {
+        font-size: 1.1rem;
+        font-weight: 900;
+        margin: 0;
+        letter-spacing: -.2px;
+    }
+
+    .logo-sub {
+        font-size: .85rem;
+        color: var(--gray);
+        display: block;
+        margin-top: -2px;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        color: var(--gray);
+        font-size: .92rem;
+    }
+
+        .breadcrumb a {
+            color: var(--gray);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            transition: var(--transition);
+        }
+
+            .breadcrumb a:hover {
+                color: var(--primary);
+            }
+
+    .sep {
+        opacity: .6;
+    }
+
+    .current {
+        color: var(--dark);
+        font-weight: 700;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        padding: .55rem .75rem;
+        background: rgba(247,248,251,.9);
+        border: 1px solid rgba(226,232,240,.9);
+        border-radius: var(--radius);
+        box-shadow: 0 8px 20px rgba(0,0,0,.06);
+    }
+
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.25rem;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    .user-name {
+        font-weight: 800;
+        font-size: .92rem;
+    }
+
+    .back-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+        .back-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+    .dashboard-main {
+        position: relative;
+        z-index: 1;
+        padding: 1.8rem 0 2rem;
+        min-height: calc(100vh - 140px);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 18px;
+        border-radius: var(--radius);
+        font-weight: 850;
+        text-decoration: none;
+        transition: var(--transition);
+        border: 2px solid transparent;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary {
+        background: #fff;
+        color: var(--primary);
+        box-shadow: 0 14px 30px rgba(0,0,0,.12);
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border-color: rgba(255,255,255,.55);
+        color: #fff;
+    }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,.14);
+            transform: translateY(-2px);
+        }
+
+    .btn-shine::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 70%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+        transform: skewX(-20deg);
+    }
+
+    .btn-shine:hover::before {
+        animation: shine .7s ease;
+    }
+
+    @@keyframes shine {
+        to {
+            left: 140%;
+        }
+    }
+
+    .welcome-section {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff;
+        border-radius: 18px;
+        padding: 2.2rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.6rem;
+        border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .welcome-top {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .welcome-text {
+        max-width: 760px;
+    }
+
+        .welcome-text h2 {
+            font-size: clamp(1.6rem, 3vw, 2.4rem);
+            font-weight: 950;
+            margin-bottom: .6rem;
+            letter-spacing: -.4px;
+        }
+
+        .welcome-text p {
+            opacity: .92;
+            margin-bottom: 1.2rem;
+            max-width: 640px;
+        }
+
+    .welcome-actions {
+        display: flex;
+        gap: .8rem;
+        flex-wrap: wrap;
+        margin-top: .4rem;
+    }
+
+    .welcome-mini-cards {
+        display: flex;
+        gap: .9rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .mini-card {
+        display: flex;
+        gap: .8rem;
+        align-items: center;
+        padding: .9rem 1rem;
+        border-radius: 16px;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.18);
+        backdrop-filter: blur(10px);
+        min-width: 180px;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+        .mini-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,.16);
+        }
+
+    .mini-ico {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.16);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+
+    .mini-title {
+        font-size: .85rem;
+        opacity: .85;
+    }
+
+    .mini-value {
+        font-weight: 900;
+        letter-spacing: -.2px;
+    }
+
+    .welcome-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 1rem;
+        margin-top: 1.4rem;
+    }
+
+    .stat-card {
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 16px;
+        padding: 1.1rem 1.1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        transition: var(--transition);
+    }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255,255,255,.18);
+        }
+
+    .stat-ico {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.14);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+
+        .stat-ico.success {
+            background: rgba(46,204,113,.20);
+        }
+
+        .stat-ico.info {
+            background: rgba(52,152,219,.20);
+        }
+
+        .stat-ico.warn {
+            background: rgba(243,156,18,.22);
+        }
+
+    .stat-meta h3 {
+        font-size: 1.75rem;
+        font-weight: 950;
+        line-height: 1;
+        margin-bottom: .2rem;
+    }
+
+    .stat-meta p {
+        margin: 0;
+        opacity: .9;
+        font-size: .92rem;
+    }
+
+    .panel {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226,232,240,.85);
+        border-radius: var(--radius);
+        box-shadow: 0 14px 35px rgba(0,0,0,.08);
+        padding: 1.4rem;
+    }
+
+    .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 950;
+        letter-spacing: -.2px;
+    }
+
+    .link {
+        background: none;
+        border: none;
+        color: var(--primary);
+        font-weight: 850;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+    /* Additional styles for user management page */
+    .search-section {
+        margin-bottom: 1.5rem;
+        animation: slideDown 0.3s ease;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .search-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .search-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .search-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    .quick-search {
+        position: relative;
+        min-width: 300px;
+    }
+
+        .quick-search i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .quick-search input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: white;
+        }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    .user-name {
+        font-weight: 800;
+        font-size: .92rem;
+    }
+
+    .logout-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--danger);
+        transition: var(--transition);
+    }
+
+        .logout-btn:hover {
+            background: rgba(67,97,238,.10);
+            color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+    .quick-search input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+    .form-input, .form-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        transition: var(--transition);
+        background: white;
+    }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+    .form-select-sm {
+        padding: 0.5rem 2rem 0.5rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        background: white;
+        cursor: pointer;
+    }
+
+    .error-state, .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .error-icon, .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.7;
+    }
+
+    .error-icon {
+        color: var(--danger);
+    }
+
+    .empty-icon {
+        color: var(--gray);
+    }
+
+    .error-content, .empty-content {
+        margin-bottom: 2rem;
+    }
+
+        .error-content h4, .empty-content h4 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .error-content p, .empty-content p {
+            color: var(--gray);
+            margin: 0;
+        }
+
+    .table-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .btn-icon:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+    .loading-state {
+        padding: 4rem 2rem;
+        text-align: center;
+        color: var(--gray);
+    }
+
+    .spinner {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1rem;
+    }
+
+    .spinner-blade {
+        position: absolute;
+        left: 44.5%;
+        top: 37%;
+        width: 10%;
+        height: 25%;
+        border-radius: 50%/20%;
+        background-color: var(--primary);
+        animation: spinner-fade 1s linear infinite;
+        animation-delay: calc(var(--n) * 0.125s);
+    }
+
+        .spinner-blade:nth-child(1) {
+            --n: 1;
+            transform: rotate(0deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(2) {
+            --n: 2;
+            transform: rotate(45deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(3) {
+            --n: 3;
+            transform: rotate(90deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(4) {
+            --n: 4;
+            transform: rotate(135deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(5) {
+            --n: 5;
+            transform: rotate(180deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(6) {
+            --n: 6;
+            transform: rotate(225deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(7) {
+            --n: 7;
+            transform: rotate(270deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(8) {
+            --n: 8;
+            transform: rotate(315deg) translate(0, -150%);
+        }
+
+    @@keyframes spinner-fade {
+        0% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0.15;
+        }
+    }
+
+    .spinner-small {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar-small {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .user-id {
+        font-size: 0.8rem;
+        color: var(--gray);
+    }
+
+    .user-fullname {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .user-phone {
+        font-size: 0.85rem;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .roles-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .role-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        transition: var(--transition);
+    }
+
+        .role-badge.client {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .role-badge.responsablesav {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+
+        .role-badge.admin {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.2);
+        }
+
+        .role-badge.none {
+            background: rgba(113, 128, 150, 0.1);
+            color: var(--gray);
+            border: 1px solid rgba(113, 128, 150, 0.2);
+        }
+
+    .actions-cell {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        color: white;
+        font-size: 0.9rem;
+    }
+
+        .btn-action.edit {
+            background: var(--info);
+        }
+
+        .btn-action.role {
+            background: var(--primary);
+        }
+
+        .btn-action.delete {
+            background: var(--danger);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 2rem 0 1rem;
+    }
+
+    .pagination-btn {
+        min-width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-weight: 600;
+    }
+
+        .pagination-btn:hover:not(.disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .pagination-ellipsis {
+        color: var(--gray);
+        padding: 0 0.5rem;
+    }
+
+    .table-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-top: 1px solid var(--border);
+        background: rgba(247, 248, 251, 0.5);
+    }
+
+    .summary-text {
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+        .summary-text strong {
+            color: var(--dark);
+        }
+
+    .summary-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+    }
+
+    .modal-container {
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .modal-header.danger {
+            background: linear-gradient(135deg, rgba(231,76,60,0.1), rgba(192,57,43,0.05));
+            border-bottom: 1px solid rgba(231,76,60,0.2);
+        }
+
+    .modal-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .modal-title h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+    .modal-close {
+        background: none;
+        border: none;
+        color: var(--gray);
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-error {
+        color: var(--danger);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--gray);
+        border: 1px solid var(--border);
+    }
+
+        .btn-secondary:hover {
+            background: rgba(247, 248, 251, 0.8);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        border: none;
+    }
+
+        .btn-danger:hover:not(:disabled) {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+        }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .user-preview {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: 12px;
+    }
+
+    .preview-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .preview-info h4 {
+        margin: 0;
+        font-size: 1.125rem;
+        font-weight: 700;
+    }
+
+    .preview-info p {
+        margin: 0.25rem 0 0 0;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .current-roles {
+        margin-bottom: 1.5rem;
+    }
+
+        .current-roles h5 {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+
+    .roles-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .role-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(247, 248, 251, 0.5);
+        padding: 0.5rem 0.75rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .role-remove {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        border: none;
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.75rem;
+    }
+
+        .role-remove:hover:not(:disabled) {
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        .role-remove:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .no-roles {
+        padding: 1rem;
+        text-align: center;
+        color: var(--gray);
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: 12px;
+        border: 1px dashed var(--border);
+    }
+
+    .add-role-section {
+        margin-bottom: 1.5rem;
+    }
+
+        .add-role-section h5 {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+
+    .role-selector {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .select-wrapper {
+        flex: 1;
+        position: relative;
+    }
+
+        .select-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            pointer-events: none;
+        }
+
+        .select-wrapper .form-select {
+            padding-left: 3rem;
+        }
+
+    .warning-message {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(231, 76, 60, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+
+    .warning-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(231, 76, 60, 0.2);
+        color: var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .warning-content h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--danger);
+        font-size: 1.125rem;
+    }
+
+    .warning-content p {
+        margin: 0;
+        color: var(--gray);
+    }
+    /* Styles pour la carte d'information du rôle */
+    .role-info-card {
+        background: linear-gradient(135deg, rgba(247, 248, 251, 0.8), rgba(255, 255, 255, 0.9));
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .info-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .role-avatar-small {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--danger), #c0392b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .role-title h4 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: var(--dark);
+    }
+
+    .role-type-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+        .role-type-badge.system {
+            background: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+
+        .role-type-badge.custom {
+            background: rgba(52, 152, 219, 0.15);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+    .info-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+        .info-item i {
+            color: var(--primary);
+            width: 20px;
+            text-align: center;
+        }
+
+    /* Conséquences de la suppression */
+    .consequences-warning {
+        background: rgba(243, 156, 18, 0.1);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        border: 1px solid rgba(243, 156, 18, 0.2);
+        margin: 1.5rem 0;
+    }
+
+        .consequences-warning h5 {
+            color: var(--warning);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+
+    .consequences-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .consequences-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            color: var(--dark);
+        }
+
+            .consequences-list li i {
+                color: var(--warning);
+                width: 20px;
+            }
+
+    /* Style pour la confirmation réussie */
+    .confirmation-success {
+        border-color: var(--success) !important;
+        background-color: rgba(46, 204, 113, 0.05) !important;
+        box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.1) !important;
+    }
+
+    .user-details-preview {
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+    .detail-label {
+        color: var(--gray);
+        font-weight: 600;
+    }
+
+    .detail-value {
+        color: var(--dark);
+        font-weight: 500;
+    }
+
+    .alert {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+        border: 1px solid transparent;
+    }
+
+    .alert-info {
+        background: rgba(52, 152, 219, 0.1);
+        border-color: rgba(52, 152, 219, 0.2);
+        color: var(--info);
+    }
+
+    .dashboard-footer {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(226,232,240,.85);
+        padding: 1.1rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .footer-left {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        color: var(--gray);
+        font-size: .92rem;
+        margin: 0;
+    }
+
+    .footer-right {
+        display: flex;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+    }
+
+    .footer-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    /* Animations */
+    .fade-in {
+        animation: fadeIn 0.3s ease both;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .slide-up {
+        animation: slideUp 0.4s ease both;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .scale-in {
+        animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    @@keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .users-table thead {
+            background: rgba(247, 248, 251, 0.8);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .users-table th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+    .table-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .users-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: var(--transition);
+    }
+
+        .users-table tbody tr:hover {
+            background: rgba(67, 97, 238, 0.03);
+        }
+
+    .users-table td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+    }
+
+    .user-row {
+        animation: rowEnter 0.4s ease both;
+        animation-delay: calc(var(--row-index) * 0.05s);
+    }
+
+    @@keyframes rowEnter {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .email-link {
+        color: var(--primary);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: var(--transition);
+    }
+
+        .email-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+    .date-cell {
+        display: flex;
+        align-items: center;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .container {
+            padding: 0 1rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            align-items: stretch;
+            gap: .9rem;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .user-info {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .search-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .table-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .quick-search {
+            min-width: auto;
+            width: 100%;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+        }
+
+        .table-summary {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .logo-text h1 {
+            font-size: 1.05rem;
+        }
+
+        .breadcrumb {
+            font-size: .86rem;
+        }
+
+        .welcome-actions .btn {
+            width: 100%;
+        }
+
+        .mini-card {
+            width: 100%;
+        }
+
+        .search-actions {
+            flex-direction: column;
+        }
+
+            .search-actions .btn {
+                width: 100%;
+            }
+
+        .roles-container {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .role-selector {
+            flex-direction: column;
+        }
+
+        .modal-footer {
+            flex-direction: column;
+        }
+
+            .modal-footer .btn {
+                width: 100%;
+            }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+
+
+    /* Reuse all existing styles from gestion-utilisateur */
+    /* Add specific styles for roles management */
+
+    .permissions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .permission-category {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+        .permission-category h4 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+    .permission-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .permission-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        transition: var(--transition);
+    }
+
+        .permission-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+    .permission-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+        color: white;
+    }
+
+        .permission-badge.admin {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .permission-badge.responsable {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .permission-badge.client {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+    .permission-item p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+
+    .roles-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .roles-table thead {
+            background: rgba(247, 248, 251, 0.8);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .roles-table th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .roles-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+            .roles-table tbody tr:hover {
+                background: rgba(67, 97, 238, 0.03);
+            }
+
+        .roles-table td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+        }
+
+    .role-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .role-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .role-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+        .role-info strong {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+    .role-desc {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .role-id {
+        background: rgba(247, 248, 251, 0.5);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-family: 'Monaco', 'Consolas', monospace;
+        font-size: 0.85rem;
+        color: var(--primary);
+    }
+
+    .role-type {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+        .role-type.system {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.2);
+        }
+
+        .role-type.custom {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+
+    .permissions-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        max-width: 200px;
+    }
+
+    .perm-tag {
+        padding: 0.25rem 0.5rem;
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid rgba(67, 97, 238, 0.2);
+    }
+
+    .perm-tag-sm {
+        padding: 0.125rem 0.375rem;
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+        border-radius: 8px;
+        font-size: 0.7rem;
+        border: 1px solid rgba(67, 97, 238, 0.2);
+        display: inline-block;
+        margin: 0.125rem;
+    }
+
+    .user-count {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .count-badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .system-badge {
+        padding: 0.5rem 1rem;
+        background: rgba(113, 128, 150, 0.1);
+        color: var(--gray);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(113, 128, 150, 0.2);
+    }
+
+    .permissions-selector {
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+    }
+
+    .permission-category-select {
+        margin-bottom: 1.5rem;
+    }
+
+        .permission-category-select:last-child {
+            margin-bottom: 0;
+        }
+
+        .permission-category-select h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+    .permission-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: var(--transition);
+        user-select: none;
+    }
+
+        .permission-checkbox:hover {
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .permission-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+    .checkmark {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+
+    .permission-checkbox input[type="checkbox"]:checked + .checkmark {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .checkmark:after {
+        content: "✓";
+        color: white;
+        font-size: 0.875rem;
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .permission-checkbox input[type="checkbox"]:checked + .checkmark:after {
+        opacity: 1;
+    }
+
+    .users-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        min-height: 44px;
+        padding: 1rem;
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+    }
+
+    .user-tag {
+        padding: 0.5rem 0.75rem;
+        background: white;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .no-users {
+        color: var(--gray);
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-warning {
+        background: rgba(243, 156, 18, 0.1);
+        border-color: rgba(243, 156, 18, 0.2);
+        color: var(--warning);
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+        .alert-warning i {
+            font-size: 1.1rem;
+        }
+
+    .filter-indicator {
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .form-hint {
+        color: var(--gray);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .role-row {
+        animation: rowEnter 0.4s ease both;
+        animation-delay: calc(var(--row-index) * 0.05s);
+    }
+
+    @@keyframes rowEnter {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Notifications */
+    .notifications-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-width: 420px;
+        pointer-events: none;
+    }
+
+    .notification {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: 0 10px 25px rgba(0,0,0,.15), 0 5px 10px rgba(0,0,0,.1);
+        padding: 1.25rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        border-left: 4px solid;
+        transform: translateX(120%);
+        opacity: 0;
+        pointer-events: all;
+        animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .notification.slide-out {
+            animation: slideOutRight 0.3s ease forwards;
+        }
+
+        .notification.success {
+            border-left-color: var(--success);
+            background: linear-gradient(to right, rgba(46,204,113,0.05), white);
+        }
+
+        .notification.error {
+            border-left-color: var(--danger);
+            background: linear-gradient(to right, rgba(231,76,60,0.05), white);
+        }
+
+        .notification.warning {
+            border-left-color: var(--warning);
+            background: linear-gradient(to right, rgba(243,156,18,0.05), white);
+        }
+
+        .notification.info {
+            border-left-color: var(--info);
+            background: linear-gradient(to right, rgba(52,152,219,0.05), white);
+        }
+
+    .notification-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .notification.success .notification-icon {
+        background: rgba(46,204,113,0.15);
+        color: var(--success);
+    }
+
+    .notification.error .notification-icon {
+        background: rgba(231,76,60,0.15);
+        color: var(--danger);
+    }
+
+    .notification.warning .notification-icon {
+        background: rgba(243,156,18,0.15);
+        color: var(--warning);
+    }
+
+    .notification.info .notification-icon {
+        background: rgba(52,152,219,0.15);
+        color: var(--info);
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 850;
+        font-size: 1rem;
+        margin-bottom: 0.375rem;
+        color: var(--dark);
+    }
+
+    .notification-message {
+        color: var(--gray);
+        font-size: 0.925rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: var(--gray);
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 6px;
+        transition: var(--transition);
+        opacity: 0.7;
+        flex-shrink: 0;
+    }
+
+        .notification-close:hover {
+            opacity: 1;
+            background: rgba(0,0,0,.05);
+        }
+
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: currentColor;
+        opacity: 0.3;
+        animation: progress 5s linear forwards;
+    }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+    }
+
+    @@keyframes progress {
+        from {
+            width: 100%;
+        }
+
+        to {
+            width: 0%;
+        }
+    }
+
+    /* Confirmation de suppression améliorée */
+    .delete-animation {
+        display: flex;
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+
+    .trash-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        animation: pulseDanger 1.5s ease-in-out infinite;
+        position: relative;
+    }
+
+        .trash-icon::before {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            border: 2px dashed rgba(231,76,60,0.3);
+            border-radius: 50%;
+            animation: rotate 10s linear infinite;
+        }
+
+    @@keyframes pulseDanger {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(231,76,60,0.4);
+        }
+
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 10px rgba(231,76,60,0);
+        }
+    }
+
+    @@keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Amélioration du message de confirmation */
+    .confirmation-message {
+        text-align: center;
+        padding: 1rem;
+        border-radius: var(--radius);
+        background: rgba(247,248,251,0.5);
+        border: 1px solid var(--border);
+        margin: 1rem 0;
+    }
+
+    .confirmation-title {
+        font-size: 1.25rem;
+        font-weight: 850;
+        color: var(--danger);
+        margin-bottom: 0.5rem;
+    }
+
+    .confirmation-subtitle {
+        color: var(--gray);
+        margin-bottom: 1rem;
+    }
+
+    /* Liste des impacts */
+    .impact-list {
+        margin: 1.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .impact-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(247,248,251,0.5);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+
+    .impact-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .impact-item.warning .impact-icon {
+        background: rgba(243,156,18,0.1);
+        color: var(--warning);
+    }
+
+    .impact-item.info .impact-icon {
+        background: rgba(52,152,219,0.1);
+        color: var(--info);
+    }
+
+    .impact-text {
+        flex: 1;
+        font-size: 0.925rem;
+    }
+
+    .impact-label {
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .impact-detail {
+        color: var(--gray);
+        font-size: 0.85rem;
+        margin-top: 0.125rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .bg-danger {
+        background: var(--danger);
+        color: white;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .permissions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .permissions-preview {
+            max-width: 100%;
+        }
+
+        .role-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .role-avatar {
+            align-self: flex-start;
+        }
+
+        .notifications-container {
+            left: 1rem;
+            right: 1rem;
+            max-width: none;
+        }
+    }
+
+
+    .articles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .article-card {
+        background: var(--card);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        transition: var(--transition);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+    .article-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        background: rgba(247,248,251,0.5);
+    }
+
+    .article-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+        .article-status.available {
+            background: rgba(46,204,113,0.1);
+            color: var(--success);
+            border: 1px solid rgba(46,204,113,0.2);
+        }
+
+        .article-status.outofstock {
+            background: rgba(231,76,60,0.1);
+            color: var(--danger);
+            border: 1px solid rgba(231,76,60,0.2);
+        }
+
+        .article-status i {
+            font-size: 0.65rem;
+        }
+
+    .article-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .article-card-body {
+        padding: 1.5rem;
+    }
+
+    .article-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+    }
+
+    .article-info {
+        text-align: center;
+    }
+
+    .article-reference {
+        font-size: 1.25rem;
+        font-weight: 900;
+        color: var(--primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .article-designation {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.75rem;
+    }
+
+    .article-description {
+        color: var(--gray);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .article-category {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(67,97,238,0.1);
+        color: var(--primary);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .article-dates {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .date-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .article-card-footer {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border);
+        background: rgba(247,248,251,0.5);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .price-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+
+        .price-row strong {
+            font-size: 1rem;
+        }
+
+    .warranty-section {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .warranty-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+        .warranty-badge.active {
+            background: rgba(52,152,219,0.1);
+            color: var(--info);
+            border: 1px solid rgba(52,152,219,0.2);
+        }
+
+        .warranty-badge.none {
+            background: rgba(113,128,150,0.1);
+            color: var(--gray);
+            border: 1px solid rgba(113,128,150,0.2);
+        }
+
+    .btn-check-warranty {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .btn-check-warranty:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+    /* Vue Table */
+    .articles-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .articles-table thead {
+            background: rgba(247,248,251,0.8);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .articles-table th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .articles-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+            .articles-table tbody tr:hover {
+                background: rgba(67,97,238,0.03);
+            }
+
+        .articles-table td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+        }
+
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(67,97,238,0.1);
+        color: var(--primary);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .warranty-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+        .warranty-indicator.has-warranty {
+            background: rgba(52,152,219,0.1);
+            color: var(--info);
+            border: 1px solid rgba(52,152,219,0.2);
+        }
+
+        .warranty-indicator.no-warranty {
+            background: rgba(113,128,150,0.1);
+            color: var(--gray);
+            border: 1px solid rgba(113,128,150,0.2);
+        }
+
+    .status-badge {
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+        .status-badge.available {
+            background: rgba(46,204,113,0.1);
+            color: var(--success);
+            border: 1px solid rgba(46,204,113,0.2);
+        }
+
+        .status-badge.outofstock {
+            background: rgba(231,76,60,0.1);
+            color: var(--danger);
+            border: 1px solid rgba(231,76,60,0.2);
+        }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+        .view-toggle .btn-icon.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+    .warranty-check {
+        padding: 1rem 0;
+    }
+
+    .article-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(247,248,251,0.5);
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+    }
+
+    .article-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .warranty-result {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        border-radius: var(--radius);
+        margin: 1.5rem 0;
+    }
+
+        .warranty-result.valid {
+            background: rgba(46,204,113,0.1);
+            border: 1px solid rgba(46,204,113,0.2);
+        }
+
+        .warranty-result.expired {
+            background: rgba(231,76,60,0.1);
+            border: 1px solid rgba(231,76,60,0.2);
+        }
+
+    .result-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .warranty-result.valid .result-icon {
+        color: var(--success);
+    }
+
+    .warranty-result.expired .result-icon {
+        color: var(--danger);
+    }
+
+    .result-content h4 {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .article-details {
+        background: rgba(247,248,251,0.5);
+        border-radius: var(--radius);
+        padding: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(226,232,240,0.5);
+    }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+    .text-end {
+        text-align: right;
+    }
+
+    .text-success {
+        color: var(--success) !important;
+    }
+
+    .text-info {
+        color: var(--info) !important;
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 2px solid var(--border);
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .articles-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .article-card-footer {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .warranty-section {
+            align-self: flex-end;
+        }
+
+        .articles-table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+</style>
+
+@code {
+    // Models
+    private List<ArticleResponse> articles = new();
+    private List<ArticleResponse> filteredArticles = new();
+    private List<CategoryResponse> categories = new();
+    private ArticleResponse? selectedArticle;
+
+    private ArticleStats stats = new();
+
+    // Forms
+    private ArticleCreateDto newArticle = new();
+    private ArticleUpdateDto editArticle = new();
+
+    // UI State
+    private bool isLoading = false;
+    private bool isCreating = false;
+    private bool isUpdating = false;
+    private bool isDeleting = false;
+    private bool isCheckingWarranty = false;
+    private bool showCreateModal = false;
+    private bool showEditModal = false;
+    private bool showDeleteConfirm = false;
+    private bool showWarrantyModal = false;
+    private bool showStats = false;
+
+    private string? errorMessage;
+    private string searchQuery = "";
+    private string selectedFilter = "all";
+    private string viewMode = "grid";
+    private string sortBy = "date";
+    private string deleteConfirmationText = "";
+
+    private int selectedCategoryId = 0;
+    private DateTime warrantyPurchaseDate = DateTime.Now;
+    private WarrantyCheckResponse? warrantyResult;
+
+    // Notifications
+    private List<Notification> notifications = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            StateHasChanged();
+
+            await Task.WhenAll(
+                LoadArticles(),
+                LoadCategories(),
+                LoadStats()
+            );
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur de chargement: {ex.Message}";
+            ShowNotification("Erreur", errorMessage, NotificationType.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadArticles()
+    {
+        articles = await ArticleService.GetAllArticlesAsync();
+        ApplyFilters();
+    }
+
+    private async Task LoadCategories()
+    {
+        categories = await CategoryService.GetAllCategoriesAsync();
+    }
+
+    private async Task LoadStats()
+    {
+        stats = await ArticleService.GetArticleStatsAsync();
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = articles.AsEnumerable();
+
+        // Search filter
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var query = searchQuery.ToLower();
+            filtered = filtered.Where(a =>
+                a.Reference.ToLower().Contains(query) ||
+                a.Designation.ToLower().Contains(query) ||
+                (a.Description != null && a.Description.ToLower().Contains(query))
+            );
+        }
+
+        // Status filter
+        filtered = selectedFilter switch
+        {
+            "available" => filtered.Where(a => a.EstDisponible),
+            "outofstock" => filtered.Where(a => !a.EstDisponible),
+            "recent" => filtered.Where(a => a.CreatedAt >= DateTime.Now.AddDays(-7)),
+            _ => filtered
+        };
+
+        // Category filter
+        if (selectedCategoryId > 0)
+        {
+            filtered = filtered.Where(a => a.CategoryId == selectedCategoryId);
+        }
+
+        // Sorting
+        filtered = sortBy switch
+        {
+            "name" => filtered.OrderBy(a => a.Designation),
+            "price" => filtered.OrderByDescending(a => a.PrixVente),
+            "reference" => filtered.OrderBy(a => a.Reference),
+            _ => filtered.OrderByDescending(a => a.CreatedAt)
+        };
+
+        filteredArticles = filtered.ToList();
+    }
+
+    private void FilterArticles(string filter)
+    {
+        selectedFilter = filter;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void SetViewMode(string mode)
+    {
+        viewMode = mode;
+        StateHasChanged();
+    }
+
+    private void ToggleStats()
+    {
+        showStats = !showStats;
+        StateHasChanged();
+    }
+
+    private void ResetFilters()
+    {
+        searchQuery = "";
+        selectedFilter = "all";
+        selectedCategoryId = 0;
+        sortBy = "date";
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // Modal Methods
+    private void ShowCreateModal()
+    {
+        newArticle = new ArticleCreateDto
+        {
+            DateMiseEnStock = DateTime.Now,
+            EstDisponible = true,
+            DureeGarantieMois = 12
+        };
+        showCreateModal = true;
+        StateHasChanged();
+    }
+
+    private void ShowEditModal(ArticleResponse article)
+    {
+        selectedArticle = article;
+        editArticle = new ArticleUpdateDto
+        {
+            Reference = article.Reference,
+            Designation = article.Designation,
+            Description = article.Description ?? "",
+            PrixAchat = article.PrixAchat,
+            PrixVente = article.PrixVente,
+            DureeGarantieMois = article.DureeGarantieMois,
+            DateMiseEnStock = article.DateMiseEnStock,
+            EstDisponible = article.EstDisponible,
+            CategoryId = article.CategoryId ?? 0
+        };
+        showEditModal = true;
+        StateHasChanged();
+    }
+
+    private void CheckWarranty(int articleId)
+    {
+        selectedArticle = articles.FirstOrDefault(a => a.Id == articleId);
+        if (selectedArticle != null)
+        {
+            warrantyPurchaseDate = DateTime.Now;
+            warrantyResult = null;
+            showWarrantyModal = true;
+            StateHasChanged();
+        }
+    }
+
+    private void ConfirmDelete(ArticleResponse article)
+    {
+        selectedArticle = article;
+        showDeleteConfirm = true;
+        deleteConfirmationText = "";
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        showCreateModal = false;
+        showEditModal = false;
+        showDeleteConfirm = false;
+        showWarrantyModal = false;
+        selectedArticle = null;
+        deleteConfirmationText = "";
+        warrantyResult = null;
+        StateHasChanged();
+    }
+
+    private void OnDeleteConfirmationChanged(ChangeEventArgs e)
+    {
+        deleteConfirmationText = e.Value?.ToString() ?? string.Empty;
+        StateHasChanged();
+    }
+
+    // CRUD Operations
+    private async Task CreateArticle()
+    {
+        try
+        {
+            isCreating = true;
+            StateHasChanged();
+
+            var result = await ArticleService.CreateArticleAsync(newArticle);
+
+            if (result != null)
+            {
+                ShowNotification("Succès",
+                    $"✅ Article '{result.Reference}' créé avec succès!",
+                    NotificationType.Success);
+
+                CloseModal();
+                await LoadData();
+            }
+            else
+            {
+                ShowNotification("Erreur",
+                    "❌ Échec de la création de l'article",
+                    NotificationType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowNotification("Erreur",
+                $"❌ Erreur: {ex.Message}",
+                NotificationType.Error);
+        }
+        finally
+        {
+            isCreating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdateArticle()
+    {
+        if (selectedArticle == null) return;
+
+        try
+        {
+            isUpdating = true;
+            StateHasChanged();
+
+            var result = await ArticleService.UpdateArticleAsync(selectedArticle.Id, editArticle);
+
+            if (result != null)
+            {
+                ShowNotification("Succès",
+                    $"✅ Article '{result.Reference}' modifié avec succès!",
+                    NotificationType.Success);
+
+                CloseModal();
+                await LoadData();
+            }
+            else
+            {
+                ShowNotification("Erreur",
+                    "❌ Échec de la modification de l'article",
+                    NotificationType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowNotification("Erreur",
+                $"❌ Erreur: {ex.Message}",
+                NotificationType.Error);
+        }
+        finally
+        {
+            isUpdating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteArticle()
+    {
+        if (selectedArticle == null) return;
+
+        try
+        {
+            isDeleting = true;
+            StateHasChanged();
+
+            var success = await ArticleService.DeleteArticleAsync(selectedArticle.Id);
+
+            if (success)
+            {
+                ShowNotification("Succès",
+                    $"🗑️ Article '{selectedArticle.Reference}' supprimé avec succès!",
+                    NotificationType.Success);
+
+                CloseModal();
+                await LoadData();
+            }
+            else
+            {
+                ShowNotification("Erreur",
+                    "❌ Échec de la suppression de l'article",
+                    NotificationType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowNotification("Erreur",
+                $"❌ Erreur: {ex.Message}",
+                NotificationType.Error);
+        }
+        finally
+        {
+            isDeleting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task PerformWarrantyCheck()
+    {
+        if (selectedArticle == null) return;
+
+        try
+        {
+            isCheckingWarranty = true;
+            StateHasChanged();
+
+            warrantyResult = await ArticleService.CheckWarrantyStatusAsync(
+                selectedArticle.Id,
+                warrantyPurchaseDate
+            );
+        }
+        catch (Exception ex)
+        {
+            ShowNotification("Erreur",
+                $"❌ Erreur de vérification: {ex.Message}",
+                NotificationType.Error);
+        }
+        finally
+        {
+            isCheckingWarranty = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ExportArticles()
+    {
+        ShowNotification("Info",
+            "📊 Export en cours de développement...",
+            NotificationType.Info);
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    // Notification system (reuse from your roles page)
+    private void ShowNotification(string title, string message, NotificationType type)
+    {
+        var notification = new Notification
+        {
+            Title = title,
+            Message = message,
+            Type = type
+        };
+
+        notifications.Insert(0, notification);
+        StateHasChanged();
+
+        _ = AutoDismissNotification(notification.Id);
+    }
+
+    private async Task AutoDismissNotification(string id)
+    {
+        await Task.Delay(5000);
+        var notification = notifications.FirstOrDefault(n => n.Id == id);
+        if (notification != null)
+        {
+            notification.IsVisible = false;
+            StateHasChanged();
+
+            await Task.Delay(300);
+            notifications.Remove(notification);
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveNotification(string id)
+    {
+        var notification = notifications.FirstOrDefault(n => n.Id == id);
+        if (notification != null)
+        {
+            notification.IsVisible = false;
+            StateHasChanged();
+
+            Task.Delay(300).ContinueWith(_ =>
+            {
+                notifications.Remove(notification);
+                InvokeAsync(StateHasChanged);
+            });
+        }
+    }
+
+    // Reuse Notification classes from your roles page
+    public class Notification
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public NotificationType Type { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public bool IsVisible { get; set; } = true;
+    }
+
+    public enum NotificationType
+    {
+        Success,
+        Error,
+        Warning,
+        Info
+    }
+}

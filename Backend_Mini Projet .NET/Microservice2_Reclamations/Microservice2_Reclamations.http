@@ -1,0 +1,6 @@
+@Microservice2_Reclamations_HostAddress = http://localhost:5006
+
+GET {{Microservice2_Reclamations_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,585 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{2A4F8DF7-92EC-4E00-B60D-99271F717C50}|GatewayAPI\\GatewayAPI.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\gatewayapi\\ocelot.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{2A4F8DF7-92EC-4E00-B60D-99271F717C50}|GatewayAPI\\GatewayAPI.csproj|solutionrelative:gatewayapi\\ocelot.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\controllers\\reclamationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\controllers\\reclamationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\models\\updatereclamationmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\models\\updatereclamationmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\models\\statutreclamation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\models\\statutreclamation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\models\\reclamationresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\models\\reclamationresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\models\\reclamation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\models\\reclamation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\models\\createreclamationmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\models\\createreclamationmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\microservice2_reclamations\\dtos\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CFD86EA9-BC30-4664-BBAD-8C54436BC588}|Microservice2_Reclamations\\Microservice2_Reclamations.csproj|solutionrelative:microservice2_reclamations\\dtos\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A4F8DF7-92EC-4E00-B60D-99271F717C50}|GatewayAPI\\GatewayAPI.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\gatewayapi\\gatewayapi.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{2A4F8DF7-92EC-4E00-B60D-99271F717C50}|GatewayAPI\\GatewayAPI.csproj|solutionrelative:gatewayapi\\gatewayapi.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC2FEB56-D380-4627-9BA2-38C496C410C6}|InterventionService\\InterventionService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\interventionservice\\interventionservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{AC2FEB56-D380-4627-9BA2-38C496C410C6}|InterventionService\\InterventionService.csproj|solutionrelative:interventionservice\\interventionservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\articleservice\\articleservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|solutionrelative:articleservice\\articleservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC2FEB56-D380-4627-9BA2-38C496C410C6}|InterventionService\\InterventionService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\interventionservice\\models\\entities\\technician.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC2FEB56-D380-4627-9BA2-38C496C410C6}|InterventionService\\InterventionService.csproj|solutionrelative:interventionservice\\models\\entities\\technician.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC2FEB56-D380-4627-9BA2-38C496C410C6}|InterventionService\\InterventionService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\interventionservice\\models\\entities\\intervention.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC2FEB56-D380-4627-9BA2-38C496C410C6}|InterventionService\\InterventionService.csproj|solutionrelative:interventionservice\\models\\entities\\intervention.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AC2FEB56-D380-4627-9BA2-38C496C410C6}|InterventionService\\InterventionService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\interventionservice\\controllers\\interventionscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC2FEB56-D380-4627-9BA2-38C496C410C6}|InterventionService\\InterventionService.csproj|solutionrelative:interventionservice\\controllers\\interventionscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\articleservice\\controllers\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|solutionrelative:articleservice\\controllers\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\articleservice\\controllers\\articlecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|solutionrelative:articleservice\\controllers\\articlecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\articleservice\\models\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|solutionrelative:articleservice\\models\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\articleservice\\models\\article.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|solutionrelative:articleservice\\models\\article.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\articleservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F46E50D9-C01C-4399-8590-35FC7E8BDCB8}|ArticleService\\ArticleService.csproj|solutionrelative:articleservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\controllers\\rolescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\controllers\\rolescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A4F8DF7-92EC-4E00-B60D-99271F717C50}|GatewayAPI\\GatewayAPI.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\gatewayapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A4F8DF7-92EC-4E00-B60D-99271F717C50}|GatewayAPI\\GatewayAPI.csproj|solutionrelative:gatewayapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\models\\addrolemodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\models\\addrolemodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\services\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\services\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A4F8DF7-92EC-4E00-B60D-99271F717C50}|GatewayAPI\\GatewayAPI.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\gatewayapi\\gatewayapi.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{2A4F8DF7-92EC-4E00-B60D-99271F717C50}|GatewayAPI\\GatewayAPI.csproj|solutionrelative:gatewayapi\\gatewayapi.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\models\\userresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\models\\userresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\models\\updateusermodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\models\\updateusermodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\models\\createusermodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\models\\createusermodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\models\\applicationuser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\models\\applicationuser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|c:\\users\\user\\source\\repos\\secureapi_jwt\\secureapi_jwt\\models\\authmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CEBE06B8-3015-482F-A901-D014500C97E9}|SecureAPI_JWT\\SecureAPI_JWT.csproj|solutionrelative:secureapi_jwt\\models\\authmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{e8b06f52-6d01-11d2-aa7d-00c04f990343}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ocelot.json",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\GatewayAPI\\ocelot.json",
+              "RelativeDocumentMoniker": "GatewayAPI\\ocelot.json",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\GatewayAPI\\ocelot.json",
+              "RelativeToolTip": "GatewayAPI\\ocelot.json",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAEwBUAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-12-30T09:01:02.032Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Program.cs",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\Program.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Program.cs",
+              "RelativeToolTip": "Microservice2_Reclamations\\Program.cs",
+              "ViewState": "AgIAAGEAAAAAAAAAAAAiwH0AAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-08T15:50:40.934Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Properties\\launchSettings.json",
+              "RelativeToolTip": "Microservice2_Reclamations\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAUwCAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-01-08T15:48:34.193Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ReclamationsController.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Controllers\\ReclamationsController.cs",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\Controllers\\ReclamationsController.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Controllers\\ReclamationsController.cs",
+              "RelativeToolTip": "Microservice2_Reclamations\\Controllers\\ReclamationsController.cs",
+              "ViewState": "AgIAAA4BAAAAAAAAAAAAwCUBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T21:57:18.322Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\appsettings.json",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\appsettings.json",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\appsettings.json",
+              "RelativeToolTip": "Microservice2_Reclamations\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-01-08T15:48:22.519Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "StatutReclamation.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\StatutReclamation.cs",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\Models\\StatutReclamation.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\StatutReclamation.cs",
+              "RelativeToolTip": "Microservice2_Reclamations\\Models\\StatutReclamation.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T21:58:04.126Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ReclamationResponse.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\ReclamationResponse.cs",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\Models\\ReclamationResponse.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\ReclamationResponse.cs",
+              "RelativeToolTip": "Microservice2_Reclamations\\Models\\ReclamationResponse.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAmwBkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-07T19:12:35.268Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "UpdateReclamationModel.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\UpdateReclamationModel.cs",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\Models\\UpdateReclamationModel.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\UpdateReclamationModel.cs",
+              "RelativeToolTip": "Microservice2_Reclamations\\Models\\UpdateReclamationModel.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAYwBgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T21:58:15.354Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "UserDto.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\DTOs\\UserDto.cs",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\DTOs\\UserDto.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\DTOs\\UserDto.cs",
+              "RelativeToolTip": "Microservice2_Reclamations\\DTOs\\UserDto.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAzwBoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-07T19:12:24.283Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "GatewayAPI.csproj",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\GatewayAPI\\GatewayAPI.csproj",
+              "RelativeDocumentMoniker": "GatewayAPI\\GatewayAPI.csproj",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\GatewayAPI\\GatewayAPI.csproj",
+              "RelativeToolTip": "GatewayAPI\\GatewayAPI.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-01-07T19:06:28.954Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "CreateReclamationModel.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\CreateReclamationModel.cs",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\Models\\CreateReclamationModel.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\CreateReclamationModel.cs",
+              "RelativeToolTip": "Microservice2_Reclamations\\Models\\CreateReclamationModel.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAkwB0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T21:57:32.952Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Reclamation.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\Reclamation.cs",
+              "RelativeDocumentMoniker": "Microservice2_Reclamations\\Models\\Reclamation.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\Microservice2_Reclamations\\Models\\Reclamation.cs",
+              "RelativeToolTip": "Microservice2_Reclamations\\Models\\Reclamation.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAwCkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T21:57:44.073Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "InterventionService.csproj",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\InterventionService\\InterventionService.csproj",
+              "RelativeDocumentMoniker": "InterventionService\\InterventionService.csproj",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\InterventionService\\InterventionService.csproj",
+              "RelativeToolTip": "InterventionService\\InterventionService.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-01-07T19:02:59.238Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ArticleService.csproj",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\ArticleService.csproj",
+              "RelativeDocumentMoniker": "ArticleService\\ArticleService.csproj",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\ArticleService.csproj",
+              "RelativeToolTip": "ArticleService\\ArticleService.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-01-07T19:02:53.488Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Technician.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\InterventionService\\Models\\Entities\\Technician.cs",
+              "RelativeDocumentMoniker": "InterventionService\\Models\\Entities\\Technician.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\InterventionService\\Models\\Entities\\Technician.cs",
+              "RelativeToolTip": "InterventionService\\Models\\Entities\\Technician.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T20:53:40.513Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Intervention.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\InterventionService\\Models\\Entities\\Intervention.cs",
+              "RelativeDocumentMoniker": "InterventionService\\Models\\Entities\\Intervention.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\InterventionService\\Models\\Entities\\Intervention.cs",
+              "RelativeToolTip": "InterventionService\\Models\\Entities\\Intervention.cs",
+              "ViewState": "AgIAADEAAAAAAAAAAAAwwEEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T20:53:33.928Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "InterventionsController.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\InterventionService\\Controllers\\InterventionsController.cs",
+              "RelativeDocumentMoniker": "InterventionService\\Controllers\\InterventionsController.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\InterventionService\\Controllers\\InterventionsController.cs",
+              "RelativeToolTip": "InterventionService\\Controllers\\InterventionsController.cs",
+              "ViewState": "AgIAAAEBAAAAAAAAAAAuwBQBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T20:52:56.179Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "Category.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Models\\Category.cs",
+              "RelativeDocumentMoniker": "ArticleService\\Models\\Category.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Models\\Category.cs",
+              "RelativeToolTip": "ArticleService\\Models\\Category.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAwwBUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T19:39:52.029Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "Article.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Models\\Article.cs",
+              "RelativeDocumentMoniker": "ArticleService\\Models\\Article.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Models\\Article.cs",
+              "RelativeToolTip": "ArticleService\\Models\\Article.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAQwBUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T19:39:47.685Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "CategoryController.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Controllers\\CategoryController.cs",
+              "RelativeDocumentMoniker": "ArticleService\\Controllers\\CategoryController.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Controllers\\CategoryController.cs",
+              "RelativeToolTip": "ArticleService\\Controllers\\CategoryController.cs",
+              "ViewState": "AgIAAEMAAAAAAAAAAAAAwFYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T19:39:37.756Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "ArticleController.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Controllers\\ArticleController.cs",
+              "RelativeDocumentMoniker": "ArticleService\\Controllers\\ArticleController.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Controllers\\ArticleController.cs",
+              "RelativeToolTip": "ArticleService\\Controllers\\ArticleController.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAAAuwD4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T19:02:24.029Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Program.cs",
+              "RelativeDocumentMoniker": "ArticleService\\Program.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\ArticleService\\Program.cs",
+              "RelativeToolTip": "ArticleService\\Program.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAAC4AAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T19:29:59.252Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\GatewayAPI\\Program.cs",
+              "RelativeDocumentMoniker": "GatewayAPI\\Program.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\GatewayAPI\\Program.cs",
+              "RelativeToolTip": "GatewayAPI\\Program.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAAAQwCYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T08:04:41.366Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "AddRoleModel.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\AddRoleModel.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Models\\AddRoleModel.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\AddRoleModel.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Models\\AddRoleModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-31T06:41:01.46Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Controllers\\AuthController.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAYwEoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T08:59:01.922Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "RolesController.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Controllers\\RolesController.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Controllers\\RolesController.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Controllers\\RolesController.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Controllers\\RolesController.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAAAAADwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T09:05:22.107Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "UsersController.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Controllers\\UsersController.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Controllers\\UsersController.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Controllers\\UsersController.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Controllers\\UsersController.cs",
+              "ViewState": "AgIAALYAAAAAAAAAAAAAwMkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T08:59:00.085Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "AuthService.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Services\\AuthService.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Services\\AuthService.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Services\\AuthService.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Services\\AuthService.cs",
+              "ViewState": "AgIAAGkBAAAAAAAAAAAcwHoBAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T09:00:15.678Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "GatewayAPI.http",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\GatewayAPI\\GatewayAPI.http",
+              "RelativeDocumentMoniker": "GatewayAPI\\GatewayAPI.http",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\GatewayAPI\\GatewayAPI.http",
+              "RelativeToolTip": "GatewayAPI\\GatewayAPI.http",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2025-12-30T09:01:01.157Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "UserResponse.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\UserResponse.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Models\\UserResponse.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\UserResponse.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Models\\UserResponse.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAqwBAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T09:00:00.127Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "UpdateUserModel.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\UpdateUserModel.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Models\\UpdateUserModel.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\UpdateUserModel.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Models\\UpdateUserModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T08:59:55.768Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "CreateUserModel.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\CreateUserModel.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Models\\CreateUserModel.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\CreateUserModel.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Models\\CreateUserModel.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAowBwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T08:59:38.766Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "ApplicationUser.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\ApplicationUser.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Models\\ApplicationUser.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\ApplicationUser.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Models\\ApplicationUser.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-30T08:59:34.905Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "AuthModel.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\AuthModel.cs",
+              "RelativeDocumentMoniker": "SecureAPI_JWT\\Models\\AuthModel.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\SecureAPI_JWT\\SecureAPI_JWT\\Models\\AuthModel.cs",
+              "RelativeToolTip": "SecureAPI_JWT\\Models\\AuthModel.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAA6wA8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T12:47:23.531Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

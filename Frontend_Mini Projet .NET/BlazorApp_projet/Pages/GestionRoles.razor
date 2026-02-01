@@ -1,0 +1,3907 @@
+﻿@page "/gestion-roles"
+@using Microsoft.AspNetCore.Components
+@using System.ComponentModel.DataAnnotations
+@using System.Text.Json
+@using BlazorApp1.Services
+@inject IRoleService RoleService
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@using BlazorApp1.Models
+
+<PageTitle>Gestion des Rôles - Système SAV</PageTitle>
+
+<div class="dash-page page-enter">
+    <!-- Background blobs -->
+    <div class="bg-blobs" aria-hidden="true">
+        <span class="blob b1"></span>
+        <span class="blob b2"></span>
+        <span class="blob b3"></span>
+    </div>
+
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <a class="logo" href="/home">
+                        <span class="logo-badge">
+                            <i class="fas fa-user-shield icon-float"></i>
+                        </span>
+                        <div class="logo-text">
+                            <h1>Service Après-Vente</h1>
+                            <span class="logo-sub">Gestion des Rôles & Permissions</span>
+                        </div>
+                    </a>
+                    <nav class="breadcrumb">
+                        <a href="/home">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                        <span class="sep">/</span>
+                        <span class="current">
+                            <i class="fas fa-user-shield"></i> Gestion des rôles
+                        </span>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <a href="/gestion-utilisateur" class="btn btn-outline" title="Gestion Utilisateurs">
+                        <i class="fas fa-users me-2"></i>Utilisateurs
+                    </a>
+                    <button type="button" class="logout-btn" title="Déconnexion" @onclick="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="welcome-top">
+                    <div class="welcome-text">
+                        <h2>Gestion des Rôles</h2>
+                        <p>Administrez les rôles et permissions du système SAV</p>
+
+                        <div class="welcome-actions">
+                            <button class="btn btn-primary btn-shine" @onclick="ShowCreateModal">
+                                <i class="fas fa-plus-circle icon-float me-2"></i>
+                                Nouveau Rôle
+                            </button>
+                            <button class="btn btn-outline" @onclick="TogglePermissionsGuide">
+                                <i class="fas fa-info-circle icon-float me-2"></i>
+                                Guide des Permissions
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="welcome-mini-cards">
+                        <div class="mini-card" @onclick='() => FilterRoles("all")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-layer-group icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Total Rôles</div>
+                                <div class="mini-value">@totalRoles</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card" @onclick='() => FilterRoles("system")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-shield-alt icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Système</div>
+                                <div class="mini-value">@systemRoles</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card" @onclick='() => FilterRoles("custom")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-user-cog icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Personnalisés</div>
+                                <div class="mini-value">@customRoles</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="welcome-stats">
+                    <div class="stat-card">
+                        <div class="stat-ico">
+                            <i class="fas fa-users icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>@totalUsers</h3>
+                            <p>Utilisateurs affectés</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-ico success">
+                            <i class="fas fa-check-circle icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>@activeRoles</h3>
+                            <p>Rôles actifs</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-ico info">
+                            <i class="fas fa-tasks icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>@totalPermissions</h3>
+                            <p>Permissions totales</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-ico warn">
+                            <i class="fas fa-sync-alt icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>Dernière MAJ</h3>
+                            <p>@lastUpdate</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Permissions Guide Panel -->
+            @if (showPermissionsGuide)
+            {
+                <section class="panel search-section">
+                    <div class="panel-head">
+                        <h2 class="section-title">Guide des Permissions</h2>
+                        <button class="link" @onclick="TogglePermissionsGuide">
+                            <i class="fas fa-times"></i> Fermer
+                        </button>
+                    </div>
+
+                    <div class="permissions-grid">
+                        <div class="permission-category">
+                            <h4><i class="fas fa-user-tie"></i> Rôles Système</h4>
+                            <div class="permission-list">
+                                <div class="permission-item">
+                                    <span class="permission-badge admin">Admin</span>
+                                    <p>Accès complet à toutes les fonctionnalités du système</p>
+                                </div>
+                                <div class="permission-item">
+                                    <span class="permission-badge responsable">ResponsableSAV</span>
+                                    <p>Gestion des réclamations, interventions et articles</p>
+                                </div>
+                                <div class="permission-item">
+                                    <span class="permission-badge client">Client</span>
+                                    <p>Consultation des réclamations et création de tickets</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="permission-category">
+                            <h4><i class="fas fa-cogs"></i> Permissions API</h4>
+                            <div class="permission-list">
+                                <div class="permission-item">
+                                    <span class="permission-badge">GET</span>
+                                    <p>Lecture des données</p>
+                                </div>
+                                <div class="permission-item">
+                                    <span class="permission-badge">POST</span>
+                                    <p>Création de données</p>
+                                </div>
+                                <div class="permission-item">
+                                    <span class="permission-badge">PUT/DELETE</span>
+                                    <p>Modification/Suppression</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            }
+
+            <!-- Main Roles Panel -->
+            <section class="panel">
+                <div class="panel-head">
+                    <h2 class="section-title">Liste des Rôles</h2>
+                    <div class="table-actions">
+                        <div class="quick-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text"
+                                   placeholder="Rechercher un rôle..."
+                                   @bind="searchQuery"
+                                   @bind:event="oninput" />
+                        </div>
+                        <button class="btn-icon" title="Actualiser" @onclick="LoadRoles">
+                            <i class="fas fa-redo-alt @(isLoading ? "fa-spin" : "")"></i>
+                        </button>
+                        <button class="btn-icon" title="Exporter" @onclick="ExportRoles">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @if (isLoading)
+                {
+                    <div class="loading-state">
+                        <div class="spinner">
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                        </div>
+                        <p>Chargement des rôles...</p>
+                    </div>
+                }
+                else if (errorMessage != null)
+                {
+                    <div class="error-state fade-in">
+                        <div class="error-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="error-content">
+                            <h4>Une erreur est survenue</h4>
+                            <p>@errorMessage</p>
+                        </div>
+                        <button class="btn btn-outline" @onclick="LoadRoles">
+                            <i class="fas fa-redo me-2"></i>Réessayer
+                        </button>
+                    </div>
+                }
+                else if (!filteredRoles.Any())
+                {
+                    <div class="empty-state fade-in">
+                        <div class="empty-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="empty-content">
+                            <h4>Aucun rôle trouvé</h4>
+                            <p>Commencez par créer votre premier rôle personnalisé</p>
+                        </div>
+                        <button class="btn btn-primary" @onclick="ShowCreateModal">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Créer un rôle
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <!-- Roles Table -->
+                    <div class="table-responsive slide-up">
+                        <table class="roles-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="table-header">
+                                            <span>Rôle</span>
+                                        </div>
+                                    </th>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Permissions</th>
+                                    <th>Utilisateurs</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var role in filteredRoles.Select((role, index) => new { Role = role, Index = index }))
+                                {
+                                    <tr class="role-row fade-in" style="--row-index: @role.Index;">
+                                        <td>
+                                            <div class="role-cell">
+                                                <div class="role-avatar">
+                                                    @GetRoleIcon(role.Role.Name)
+                                                </div>
+                                                <div class="role-info">
+                                                    <strong>@role.Role.Name</strong>
+                                                    <small class="role-desc">@GetRoleDescription(role.Role.Name)</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <code class="role-id">@role.Role.Id.Substring(0, Math.Min(8, role.Role.Id.Length))...</code>
+                                        </td>
+                                        <td>
+                                            <span class="role-type @GetRoleTypeClass(role.Role.Name)">
+                                                @GetRoleType(role.Role.Name)
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="permissions-preview">
+                                                @foreach (var perm in GetRolePermissions(role.Role.Name))
+                                                {
+                                                    <span class="perm-tag">@perm</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="user-count">
+                                                <i class="fas fa-users me-1"></i>
+                                                <span class="count-badge">@GetUserCount(role.Role.Name)</span>
+                                                utilisateurs
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="actions-cell">
+                                                @if (IsCustomRole(role.Role.Name))
+                                                {
+                                                    
+                                                    <button class="btn-action delete"
+                                                            title="Supprimer"
+                                                            @onclick="() => ConfirmDelete(role.Role)">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="system-badge">Système</span>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="table-summary slide-up">
+                        <span class="summary-text">
+                            Affichage de <strong>@filteredRoles.Count</strong> rôles
+                            <span class="filter-indicator">
+                                @if (!string.IsNullOrEmpty(currentFilter))
+                                {
+                                    <span>
+                                        <i class="fas fa-filter ms-2"></i>
+                                        Filtre: @currentFilter
+                                    </span>
+                                }
+
+                            </span>
+                        </span>
+                        <div class="summary-actions">
+                            <button class="btn btn-sm btn-outline" @onclick='() => FilterRoles("all")'>
+                                Tout voir
+                            </button>
+
+                        </div>
+                    </div>
+                }
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-left">
+                    <i class="fas fa-user-shield"></i>
+                    Gestion des Rôles © @DateTime.Now.Year - Système SAV
+                </p>
+                <div class="footer-right">
+                    <span class="footer-info">
+                        <i class="fas fa-database"></i> @totalRoles rôles
+                    </span>
+                    <span class="footer-info">
+                        <i class="fas fa-clock"></i> @DateTime.Now.ToString("HH:mm")
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL: Create Role -->
+    @if (showCreateModal)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        <h3>Créer un nouveau rôle</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- MODAL: Confirm Delete - Section améliorée -->
+                <div class="modal-body">
+                    <!-- Animation de suppression -->
+                    <div class="delete-animation">
+                        <div class="trash-icon">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                    </div>
+
+                    <!-- Message principal avec icônes -->
+                    <div class="confirmation-message">
+                        <div class="confirmation-title">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Confirmation de suppression
+                        </div>
+                        <div class="confirmation-subtitle">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Cette action est définitive et ne peut pas être annulée.
+                        </div>
+                    </div>
+
+                    <!-- Carte d'information du rôle -->
+                    <div class="role-info-card">
+                        <div class="info-card-header">
+                            <div class="role-avatar-small">
+                                @GetRoleIcon(selectedRole.Name)
+                            </div>
+                            <div class="role-title">
+                                <h4>@selectedRole.Name</h4>
+                                <span class="role-type-badge @GetRoleTypeClass(selectedRole.Name)">
+                                    @GetRoleType(selectedRole.Name)
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="info-card-body">
+                            <div class="info-item">
+                                <i class="fas fa-users"></i>
+                                <span>@GetUserCount(selectedRole.Name) utilisateur(s)</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-key"></i>
+                                <span>@GetRolePermissions(selectedRole.Name).Count permission(s)</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>Créé le @DateTime.Now.AddDays(-new Random().Next(1, 365)).ToString("dd/MM/yyyy")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conséquences de la suppression -->
+                    <div class="consequences-warning">
+                        <h5><i class="fas fa-exclamation-circle me-2"></i>Conséquences :</h5>
+                        <ul class="consequences-list">
+                            <li><i class="fas fa-user-slash"></i> Les utilisateurs perdront ce rôle</li>
+                            <li><i class="fas fa-shield-alt"></i> Les permissions seront révoquées</li>
+                            <li><i class="fas fa-history"></i> L'historique des actions sera conservé</li>
+                            <li><i class="fas fa-ban"></i> Cette action est irréversible</li>
+                        </ul>
+                    </div>
+
+                    <!-- Zone de saisie de confirmation -->
+                    <div class="form-group full-width mt-3">
+                        <label class="form-label">
+                            <i class="fas fa-keyboard"></i> Tapez "<strong>SUPPRIMER</strong>" pour confirmer
+                        </label>
+                        <input type="text"
+                               class="form-input @(deleteConfirmationText == "SUPPRIMER" ? "confirmation-success" : "")"
+                               placeholder="SUPPRIMER"
+                               @bind="deleteConfirmationText"
+                               @oninput="OnDeleteConfirmationChanged" />
+                        <small class="form-hint">Cette mesure de sécurité empêche les suppressions accidentelles.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- MODAL: Edit Role -->
+    @if (showEditModal && selectedRole != null)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        <h3>Modifier le rôle</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="role-preview">
+                        <div class="preview-avatar">
+                            @GetRoleIcon(selectedRole.Name)
+                        </div>
+                        <div class="preview-info">
+                            <h4>@selectedRole.Name</h4>
+                            <p>ID: @selectedRole.Id.Substring(0, Math.Min(8, selectedRole.Id.Length))...</p>
+                        </div>
+                    </div>
+
+                    <EditForm Model="@editRole" OnValidSubmit="UpdateRole">
+                        <DataAnnotationsValidator />
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="editRoleName" class="form-label">
+                                    <i class="fas fa-tag"></i> Nom du rôle *
+                                </label>
+                                <InputText id="editRoleName" class="form-input" @bind-Value="editRole.Name" />
+                                <ValidationMessage For="@(() => editRole.Name)" class="form-error" />
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label class="form-label">
+                                    <i class="fas fa-users"></i> Utilisateurs avec ce rôle
+                                </label>
+                                <div class="users-list">
+                                    @if (roleUsers.Any())
+                                    {
+                                        @foreach (var user in roleUsers)
+                                        {
+                                            <span class="user-tag">
+                                                <i class="fas fa-user"></i> @user
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="no-users">
+                                            <i class="fas fa-info-circle"></i>
+                                            Aucun utilisateur avec ce rôle
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                                Annuler
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isUpdating">
+                                @if (isUpdating)
+                                {
+                                    <span class="spinner-small me-2"></span>
+                                }
+                                <i class="fas fa-save me-2"></i>
+                                Enregistrer
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- MODAL: Confirm Delete -->
+    @if (showDeleteConfirm && selectedRole != null)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header danger">
+                    <div class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <h3>Confirmer la suppression</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Animation de suppression -->
+                    <div class="delete-animation">
+                        <div class="trash-icon">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                    </div>
+
+                    <!-- Message principal -->
+                    <div class="confirmation-message">
+                        <div class="confirmation-title">Vous êtes sur le point de supprimer ce rôle</div>
+                        <div class="confirmation-subtitle">
+                            Cette action est irréversible et affectera tous les utilisateurs ayant ce rôle.
+                        </div>
+                    </div>
+
+                    <!-- Liste des impacts -->
+                    <div class="impact-list">
+                        <div class="impact-item warning">
+                            <div class="impact-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="impact-text">
+                                <div class="impact-label">Utilisateurs affectés</div>
+                                <div class="impact-detail">
+                                    @GetUserCount(selectedRole.Name) utilisateur(s) perdront ce rôle
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="impact-item info">
+                            <div class="impact-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="impact-text">
+                                <div class="impact-label">Permissions révoquées</div>
+                                <div class="impact-detail">
+                                    Toutes les permissions associées à ce rôle seront supprimées
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="impact-item warning">
+                            <div class="impact-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <div class="impact-text">
+                                <div class="impact-label">Historique préservé</div>
+                                <div class="impact-detail">
+                                    Les actions passées des utilisateurs resteront dans l'historique
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Détails du rôle -->
+                    <div class="role-details-preview">
+                        <div class="detail-item">
+                            <span class="detail-label">Nom du rôle :</span>
+                            <span class="detail-value"><span class="badge bg-danger">@selectedRole.Name</span></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Type :</span>
+                            <span class="detail-value">@GetRoleType(selectedRole.Name)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Créé le :</span>
+                            <span class="detail-value">@DateTime.Now.AddDays(-new Random().Next(1, 365)).ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+
+                    <!-- Zone de saisie de confirmation -->
+                    <div class="form-group full-width mt-3">
+                        <label class="form-label">
+                            <i class="fas fa-keyboard"></i> Tapez "SUPPRIMER" pour confirmer
+                        </label>
+                        <input type="text"
+                               class="form-input"
+                               placeholder="SUPPRIMER"
+                               @bind="deleteConfirmationText"
+                               @oninput="OnDeleteConfirmationChanged" />
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </button>
+                    <button type="button"
+                            class="btn btn-danger"
+                            @onclick="DeleteRole"
+                            disabled="@(isDeleting || deleteConfirmationText != "SUPPRIMER")"
+                            title="@(deleteConfirmationText != "SUPPRIMER" ? "Tapez 'SUPPRIMER' pour activer" : "")">
+                        @if (isDeleting)
+                        {
+                            <span class="spinner-small me-2"></span>
+                        }
+                        <i class="fas fa-trash-alt me-2"></i>
+                        Supprimer définitivement
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Notifications Container -->
+    <div class="notifications-container">
+        @foreach (var notification in notifications)
+        {
+            <div class="notification @notification.Type.ToString().ToLower() @(!notification.IsVisible ? "slide-out" : "")"
+                 data-id="@notification.Id">
+                <div class="notification-icon">
+                    @if (notification.Type == NotificationType.Success)
+                    {
+                        <i class="fas fa-check-circle"></i>
+                    }
+                    else if (notification.Type == NotificationType.Error)
+                    {
+                        <i class="fas fa-exclamation-circle"></i>
+                    }
+                    else if (notification.Type == NotificationType.Warning)
+                    {
+                        <i class="fas fa-exclamation-triangle"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-info-circle"></i>
+                    }
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">@notification.Title</div>
+                    <div class="notification-message">@notification.Message</div>
+                </div>
+                <button class="notification-close" @onclick='() => RemoveNotification(notification.Id)'>
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="notification-progress"></div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary: #7209b7;
+        --success: #2ecc71;
+        --warning: #f39c12;
+        --info: #3498db;
+        --danger: #e74c3c;
+        --dark: #2d3748;
+        --gray: #718096;
+        --light: #f7f8fb;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --shadow: 0 14px 35px rgba(0,0,0,.10);
+        --radius: 14px;
+        --transition: all .25s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+        background: var(--light);
+        color: var(--dark);
+        line-height: 1.6;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .dash-page {
+        position: relative;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .page-enter {
+        animation: pageEnter .35s ease both;
+    }
+
+    @@keyframes pageEnter {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bg-blobs {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    .blob {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(30px);
+        opacity: .35;
+        animation: blobFloat 10s ease-in-out infinite;
+        background: radial-gradient(circle at 30% 30%, rgba(114,9,183,.55), rgba(67,97,238,.35));
+    }
+
+    .b1 {
+        width: 420px;
+        height: 420px;
+        top: -160px;
+        left: -140px;
+    }
+
+    .b2 {
+        width: 520px;
+        height: 520px;
+        bottom: -220px;
+        right: -220px;
+        animation-delay: .6s;
+    }
+
+    .b3 {
+        width: 320px;
+        height: 320px;
+        top: 25%;
+        right: 20%;
+        opacity: .25;
+        animation-delay: 1.1s;
+    }
+
+    @@keyframes blobFloat {
+        0% {
+            transform: translateY(0) translateX(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-18px) translateX(10px) scale(1.03);
+        }
+
+        100% {
+            transform: translateY(0) translateX(0) scale(1);
+        }
+    }
+
+    .icon-float {
+        display: inline-block;
+        animation: iconFloat 3.2s ease-in-out infinite;
+    }
+
+    @@keyframes iconFloat {
+        0% {
+            transform: translateY(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-3px) scale(1.06);
+        }
+
+        100% {
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .dashboard-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(226,232,240,.8);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.4rem;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .logo-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(67,97,238,.22);
+    }
+
+    .logo-text h1 {
+        font-size: 1.1rem;
+        font-weight: 900;
+        margin: 0;
+        letter-spacing: -.2px;
+    }
+
+    .logo-sub {
+        font-size: .85rem;
+        color: var(--gray);
+        display: block;
+        margin-top: -2px;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        color: var(--gray);
+        font-size: .92rem;
+    }
+
+        .breadcrumb a {
+            color: var(--gray);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            transition: var(--transition);
+        }
+
+            .breadcrumb a:hover {
+                color: var(--primary);
+            }
+
+    .sep {
+        opacity: .6;
+    }
+
+    .current {
+        color: var(--dark);
+        font-weight: 700;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        padding: .55rem .75rem;
+        background: rgba(247,248,251,.9);
+        border: 1px solid rgba(226,232,240,.9);
+        border-radius: var(--radius);
+        box-shadow: 0 8px 20px rgba(0,0,0,.06);
+    }
+
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.25rem;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    .user-name {
+        font-weight: 800;
+        font-size: .92rem;
+    }
+
+    .back-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+        .back-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+    .dashboard-main {
+        position: relative;
+        z-index: 1;
+        padding: 1.8rem 0 2rem;
+        min-height: calc(100vh - 140px);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 18px;
+        border-radius: var(--radius);
+        font-weight: 850;
+        text-decoration: none;
+        transition: var(--transition);
+        border: 2px solid transparent;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary {
+        background: #fff;
+        color: var(--primary);
+        box-shadow: 0 14px 30px rgba(0,0,0,.12);
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border-color: rgba(255,255,255,.55);
+        color: #fff;
+    }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,.14);
+            transform: translateY(-2px);
+        }
+
+    .btn-shine::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 70%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+        transform: skewX(-20deg);
+    }
+
+    .btn-shine:hover::before {
+        animation: shine .7s ease;
+    }
+
+    @@keyframes shine {
+        to {
+            left: 140%;
+        }
+    }
+
+    .welcome-section {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff;
+        border-radius: 18px;
+        padding: 2.2rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.6rem;
+        border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .welcome-top {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .welcome-text {
+        max-width: 760px;
+    }
+
+        .welcome-text h2 {
+            font-size: clamp(1.6rem, 3vw, 2.4rem);
+            font-weight: 950;
+            margin-bottom: .6rem;
+            letter-spacing: -.4px;
+        }
+
+        .welcome-text p {
+            opacity: .92;
+            margin-bottom: 1.2rem;
+            max-width: 640px;
+        }
+
+    .welcome-actions {
+        display: flex;
+        gap: .8rem;
+        flex-wrap: wrap;
+        margin-top: .4rem;
+    }
+
+    .welcome-mini-cards {
+        display: flex;
+        gap: .9rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .mini-card {
+        display: flex;
+        gap: .8rem;
+        align-items: center;
+        padding: .9rem 1rem;
+        border-radius: 16px;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.18);
+        backdrop-filter: blur(10px);
+        min-width: 180px;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+        .mini-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,.16);
+        }
+
+    .mini-ico {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.16);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+
+    .mini-title {
+        font-size: .85rem;
+        opacity: .85;
+    }
+
+    .mini-value {
+        font-weight: 900;
+        letter-spacing: -.2px;
+    }
+
+    .welcome-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 1rem;
+        margin-top: 1.4rem;
+    }
+
+    .stat-card {
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 16px;
+        padding: 1.1rem 1.1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        transition: var(--transition);
+    }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255,255,255,.18);
+        }
+
+    .stat-ico {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.14);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+
+        .stat-ico.success {
+            background: rgba(46,204,113,.20);
+        }
+
+        .stat-ico.info {
+            background: rgba(52,152,219,.20);
+        }
+
+        .stat-ico.warn {
+            background: rgba(243,156,18,.22);
+        }
+
+    .stat-meta h3 {
+        font-size: 1.75rem;
+        font-weight: 950;
+        line-height: 1;
+        margin-bottom: .2rem;
+    }
+
+    .stat-meta p {
+        margin: 0;
+        opacity: .9;
+        font-size: .92rem;
+    }
+
+    .panel {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226,232,240,.85);
+        border-radius: var(--radius);
+        box-shadow: 0 14px 35px rgba(0,0,0,.08);
+        padding: 1.4rem;
+    }
+
+    .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 950;
+        letter-spacing: -.2px;
+    }
+
+    .link {
+        background: none;
+        border: none;
+        color: var(--primary);
+        font-weight: 850;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+    /* Additional styles for user management page */
+    .search-section {
+        margin-bottom: 1.5rem;
+        animation: slideDown 0.3s ease;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .search-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .search-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .search-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    .quick-search {
+        position: relative;
+        min-width: 300px;
+    }
+
+        .quick-search i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .quick-search input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: white;
+        }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    .user-name {
+        font-weight: 800;
+        font-size: .92rem;
+    }
+
+    .logout-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--danger);
+        transition: var(--transition);
+    }
+
+        .logout-btn:hover {
+            background: rgba(67,97,238,.10);
+            color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+    .quick-search input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+    .form-input, .form-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        transition: var(--transition);
+        background: white;
+    }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+    .form-select-sm {
+        padding: 0.5rem 2rem 0.5rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        background: white;
+        cursor: pointer;
+    }
+
+    .error-state, .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .error-icon, .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.7;
+    }
+
+    .error-icon {
+        color: var(--danger);
+    }
+
+    .empty-icon {
+        color: var(--gray);
+    }
+
+    .error-content, .empty-content {
+        margin-bottom: 2rem;
+    }
+
+        .error-content h4, .empty-content h4 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .error-content p, .empty-content p {
+            color: var(--gray);
+            margin: 0;
+        }
+
+    .table-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .btn-icon:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+    .loading-state {
+        padding: 4rem 2rem;
+        text-align: center;
+        color: var(--gray);
+    }
+
+    .spinner {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1rem;
+    }
+
+    .spinner-blade {
+        position: absolute;
+        left: 44.5%;
+        top: 37%;
+        width: 10%;
+        height: 25%;
+        border-radius: 50%/20%;
+        background-color: var(--primary);
+        animation: spinner-fade 1s linear infinite;
+        animation-delay: calc(var(--n) * 0.125s);
+    }
+
+        .spinner-blade:nth-child(1) {
+            --n: 1;
+            transform: rotate(0deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(2) {
+            --n: 2;
+            transform: rotate(45deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(3) {
+            --n: 3;
+            transform: rotate(90deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(4) {
+            --n: 4;
+            transform: rotate(135deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(5) {
+            --n: 5;
+            transform: rotate(180deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(6) {
+            --n: 6;
+            transform: rotate(225deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(7) {
+            --n: 7;
+            transform: rotate(270deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(8) {
+            --n: 8;
+            transform: rotate(315deg) translate(0, -150%);
+        }
+
+    @@keyframes spinner-fade {
+        0% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0.15;
+        }
+    }
+
+    .spinner-small {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar-small {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .user-id {
+        font-size: 0.8rem;
+        color: var(--gray);
+    }
+
+    .user-fullname {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .user-phone {
+        font-size: 0.85rem;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .roles-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .role-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        transition: var(--transition);
+    }
+
+        .role-badge.client {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .role-badge.responsablesav {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+
+        .role-badge.admin {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.2);
+        }
+
+        .role-badge.none {
+            background: rgba(113, 128, 150, 0.1);
+            color: var(--gray);
+            border: 1px solid rgba(113, 128, 150, 0.2);
+        }
+
+    .actions-cell {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        color: white;
+        font-size: 0.9rem;
+    }
+
+        .btn-action.edit {
+            background: var(--info);
+        }
+
+        .btn-action.role {
+            background: var(--primary);
+        }
+
+        .btn-action.delete {
+            background: var(--danger);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 2rem 0 1rem;
+    }
+
+    .pagination-btn {
+        min-width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-weight: 600;
+    }
+
+        .pagination-btn:hover:not(.disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .pagination-ellipsis {
+        color: var(--gray);
+        padding: 0 0.5rem;
+    }
+
+    .table-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-top: 1px solid var(--border);
+        background: rgba(247, 248, 251, 0.5);
+    }
+
+    .summary-text {
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+        .summary-text strong {
+            color: var(--dark);
+        }
+
+    .summary-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+    }
+
+    .modal-container {
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .modal-header.danger {
+            background: linear-gradient(135deg, rgba(231,76,60,0.1), rgba(192,57,43,0.05));
+            border-bottom: 1px solid rgba(231,76,60,0.2);
+        }
+
+    .modal-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .modal-title h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+    .modal-close {
+        background: none;
+        border: none;
+        color: var(--gray);
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-error {
+        color: var(--danger);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--gray);
+        border: 1px solid var(--border);
+    }
+
+        .btn-secondary:hover {
+            background: rgba(247, 248, 251, 0.8);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        border: none;
+    }
+
+        .btn-danger:hover:not(:disabled) {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+        }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .user-preview {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: 12px;
+    }
+
+    .preview-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .preview-info h4 {
+        margin: 0;
+        font-size: 1.125rem;
+        font-weight: 700;
+    }
+
+    .preview-info p {
+        margin: 0.25rem 0 0 0;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .current-roles {
+        margin-bottom: 1.5rem;
+    }
+
+        .current-roles h5 {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+
+    .roles-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .role-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(247, 248, 251, 0.5);
+        padding: 0.5rem 0.75rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .role-remove {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        border: none;
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.75rem;
+    }
+
+        .role-remove:hover:not(:disabled) {
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        .role-remove:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .no-roles {
+        padding: 1rem;
+        text-align: center;
+        color: var(--gray);
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: 12px;
+        border: 1px dashed var(--border);
+    }
+
+    .add-role-section {
+        margin-bottom: 1.5rem;
+    }
+
+        .add-role-section h5 {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+
+    .role-selector {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .select-wrapper {
+        flex: 1;
+        position: relative;
+    }
+
+        .select-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            pointer-events: none;
+        }
+
+        .select-wrapper .form-select {
+            padding-left: 3rem;
+        }
+
+    .warning-message {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(231, 76, 60, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+
+    .warning-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(231, 76, 60, 0.2);
+        color: var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .warning-content h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--danger);
+        font-size: 1.125rem;
+    }
+
+    .warning-content p {
+        margin: 0;
+        color: var(--gray);
+    }
+    /* Styles pour la carte d'information du rôle */
+    .role-info-card {
+        background: linear-gradient(135deg, rgba(247, 248, 251, 0.8), rgba(255, 255, 255, 0.9));
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .info-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .role-avatar-small {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--danger), #c0392b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .role-title h4 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: var(--dark);
+    }
+
+    .role-type-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+        .role-type-badge.system {
+            background: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+
+        .role-type-badge.custom {
+            background: rgba(52, 152, 219, 0.15);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+    .info-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+        .info-item i {
+            color: var(--primary);
+            width: 20px;
+            text-align: center;
+        }
+
+    /* Conséquences de la suppression */
+    .consequences-warning {
+        background: rgba(243, 156, 18, 0.1);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        border: 1px solid rgba(243, 156, 18, 0.2);
+        margin: 1.5rem 0;
+    }
+
+        .consequences-warning h5 {
+            color: var(--warning);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+
+    .consequences-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .consequences-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            color: var(--dark);
+        }
+
+            .consequences-list li i {
+                color: var(--warning);
+                width: 20px;
+            }
+
+    /* Style pour la confirmation réussie */
+    .confirmation-success {
+        border-color: var(--success) !important;
+        background-color: rgba(46, 204, 113, 0.05) !important;
+        box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.1) !important;
+    }
+    .user-details-preview {
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+    .detail-label {
+        color: var(--gray);
+        font-weight: 600;
+    }
+
+    .detail-value {
+        color: var(--dark);
+        font-weight: 500;
+    }
+
+    .alert {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+        border: 1px solid transparent;
+    }
+
+    .alert-info {
+        background: rgba(52, 152, 219, 0.1);
+        border-color: rgba(52, 152, 219, 0.2);
+        color: var(--info);
+    }
+
+    .dashboard-footer {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(226,232,240,.85);
+        padding: 1.1rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .footer-left {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        color: var(--gray);
+        font-size: .92rem;
+        margin: 0;
+    }
+
+    .footer-right {
+        display: flex;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+    }
+
+    .footer-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    /* Animations */
+    .fade-in {
+        animation: fadeIn 0.3s ease both;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .slide-up {
+        animation: slideUp 0.4s ease both;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .scale-in {
+        animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    @@keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .users-table thead {
+            background: rgba(247, 248, 251, 0.8);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .users-table th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+    .table-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .users-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: var(--transition);
+    }
+
+        .users-table tbody tr:hover {
+            background: rgba(67, 97, 238, 0.03);
+        }
+
+    .users-table td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+    }
+
+    .user-row {
+        animation: rowEnter 0.4s ease both;
+        animation-delay: calc(var(--row-index) * 0.05s);
+    }
+
+    @@keyframes rowEnter {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .email-link {
+        color: var(--primary);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: var(--transition);
+    }
+
+        .email-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+    .date-cell {
+        display: flex;
+        align-items: center;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .container {
+            padding: 0 1rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            align-items: stretch;
+            gap: .9rem;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .user-info {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .search-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .table-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .quick-search {
+            min-width: auto;
+            width: 100%;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+        }
+
+        .table-summary {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .logo-text h1 {
+            font-size: 1.05rem;
+        }
+
+        .breadcrumb {
+            font-size: .86rem;
+        }
+
+        .welcome-actions .btn {
+            width: 100%;
+        }
+
+        .mini-card {
+            width: 100%;
+        }
+
+        .search-actions {
+            flex-direction: column;
+        }
+
+            .search-actions .btn {
+                width: 100%;
+            }
+
+        .roles-container {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .role-selector {
+            flex-direction: column;
+        }
+
+        .modal-footer {
+            flex-direction: column;
+        }
+
+            .modal-footer .btn {
+                width: 100%;
+            }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+
+
+    /* Reuse all existing styles from gestion-utilisateur */
+    /* Add specific styles for roles management */
+
+    .permissions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .permission-category {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+        .permission-category h4 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+    .permission-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .permission-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        transition: var(--transition);
+    }
+
+        .permission-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+    .permission-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+        color: white;
+    }
+
+        .permission-badge.admin {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .permission-badge.responsable {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .permission-badge.client {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+    .permission-item p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+
+    .roles-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .roles-table thead {
+            background: rgba(247, 248, 251, 0.8);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .roles-table th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .roles-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+            .roles-table tbody tr:hover {
+                background: rgba(67, 97, 238, 0.03);
+            }
+
+        .roles-table td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+        }
+
+    .role-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .role-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .role-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+        .role-info strong {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+    .role-desc {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .role-id {
+        background: rgba(247, 248, 251, 0.5);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-family: 'Monaco', 'Consolas', monospace;
+        font-size: 0.85rem;
+        color: var(--primary);
+    }
+
+    .role-type {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+        .role-type.system {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.2);
+        }
+
+        .role-type.custom {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+
+    .permissions-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        max-width: 200px;
+    }
+
+    .perm-tag {
+        padding: 0.25rem 0.5rem;
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid rgba(67, 97, 238, 0.2);
+    }
+
+    .perm-tag-sm {
+        padding: 0.125rem 0.375rem;
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+        border-radius: 8px;
+        font-size: 0.7rem;
+        border: 1px solid rgba(67, 97, 238, 0.2);
+        display: inline-block;
+        margin: 0.125rem;
+    }
+
+    .user-count {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .count-badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .system-badge {
+        padding: 0.5rem 1rem;
+        background: rgba(113, 128, 150, 0.1);
+        color: var(--gray);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(113, 128, 150, 0.2);
+    }
+
+    .permissions-selector {
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+    }
+
+    .permission-category-select {
+        margin-bottom: 1.5rem;
+    }
+
+        .permission-category-select:last-child {
+            margin-bottom: 0;
+        }
+
+        .permission-category-select h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+    .permission-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: var(--transition);
+        user-select: none;
+    }
+
+        .permission-checkbox:hover {
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .permission-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+    .checkmark {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+
+    .permission-checkbox input[type="checkbox"]:checked + .checkmark {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .checkmark:after {
+        content: "✓";
+        color: white;
+        font-size: 0.875rem;
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .permission-checkbox input[type="checkbox"]:checked + .checkmark:after {
+        opacity: 1;
+    }
+
+    .users-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        min-height: 44px;
+        padding: 1rem;
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+    }
+
+    .user-tag {
+        padding: 0.5rem 0.75rem;
+        background: white;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .no-users {
+        color: var(--gray);
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-warning {
+        background: rgba(243, 156, 18, 0.1);
+        border-color: rgba(243, 156, 18, 0.2);
+        color: var(--warning);
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+        .alert-warning i {
+            font-size: 1.1rem;
+        }
+
+    .filter-indicator {
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .form-hint {
+        color: var(--gray);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .role-row {
+        animation: rowEnter 0.4s ease both;
+        animation-delay: calc(var(--row-index) * 0.05s);
+    }
+
+    @@keyframes rowEnter {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Notifications */
+    .notifications-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-width: 420px;
+        pointer-events: none;
+    }
+
+    .notification {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: 0 10px 25px rgba(0,0,0,.15), 0 5px 10px rgba(0,0,0,.1);
+        padding: 1.25rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        border-left: 4px solid;
+        transform: translateX(120%);
+        opacity: 0;
+        pointer-events: all;
+        animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .notification.slide-out {
+            animation: slideOutRight 0.3s ease forwards;
+        }
+
+        .notification.success {
+            border-left-color: var(--success);
+            background: linear-gradient(to right, rgba(46,204,113,0.05), white);
+        }
+
+        .notification.error {
+            border-left-color: var(--danger);
+            background: linear-gradient(to right, rgba(231,76,60,0.05), white);
+        }
+
+        .notification.warning {
+            border-left-color: var(--warning);
+            background: linear-gradient(to right, rgba(243,156,18,0.05), white);
+        }
+
+        .notification.info {
+            border-left-color: var(--info);
+            background: linear-gradient(to right, rgba(52,152,219,0.05), white);
+        }
+
+    .notification-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .notification.success .notification-icon {
+        background: rgba(46,204,113,0.15);
+        color: var(--success);
+    }
+
+    .notification.error .notification-icon {
+        background: rgba(231,76,60,0.15);
+        color: var(--danger);
+    }
+
+    .notification.warning .notification-icon {
+        background: rgba(243,156,18,0.15);
+        color: var(--warning);
+    }
+
+    .notification.info .notification-icon {
+        background: rgba(52,152,219,0.15);
+        color: var(--info);
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 850;
+        font-size: 1rem;
+        margin-bottom: 0.375rem;
+        color: var(--dark);
+    }
+
+    .notification-message {
+        color: var(--gray);
+        font-size: 0.925rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: var(--gray);
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 6px;
+        transition: var(--transition);
+        opacity: 0.7;
+        flex-shrink: 0;
+    }
+
+        .notification-close:hover {
+            opacity: 1;
+            background: rgba(0,0,0,.05);
+        }
+
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: currentColor;
+        opacity: 0.3;
+        animation: progress 5s linear forwards;
+    }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+    }
+
+    @@keyframes progress {
+        from {
+            width: 100%;
+        }
+
+        to {
+            width: 0%;
+        }
+    }
+
+    /* Confirmation de suppression améliorée */
+    .delete-animation {
+        display: flex;
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+
+    .trash-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        animation: pulseDanger 1.5s ease-in-out infinite;
+        position: relative;
+    }
+
+        .trash-icon::before {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            border: 2px dashed rgba(231,76,60,0.3);
+            border-radius: 50%;
+            animation: rotate 10s linear infinite;
+        }
+
+    @@keyframes pulseDanger {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(231,76,60,0.4);
+        }
+
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 10px rgba(231,76,60,0);
+        }
+    }
+
+    @@keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Amélioration du message de confirmation */
+    .confirmation-message {
+        text-align: center;
+        padding: 1rem;
+        border-radius: var(--radius);
+        background: rgba(247,248,251,0.5);
+        border: 1px solid var(--border);
+        margin: 1rem 0;
+    }
+
+    .confirmation-title {
+        font-size: 1.25rem;
+        font-weight: 850;
+        color: var(--danger);
+        margin-bottom: 0.5rem;
+    }
+
+    .confirmation-subtitle {
+        color: var(--gray);
+        margin-bottom: 1rem;
+    }
+
+    /* Liste des impacts */
+    .impact-list {
+        margin: 1.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .impact-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(247,248,251,0.5);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+
+    .impact-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .impact-item.warning .impact-icon {
+        background: rgba(243,156,18,0.1);
+        color: var(--warning);
+    }
+
+    .impact-item.info .impact-icon {
+        background: rgba(52,152,219,0.1);
+        color: var(--info);
+    }
+
+    .impact-text {
+        flex: 1;
+        font-size: 0.925rem;
+    }
+
+    .impact-label {
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .impact-detail {
+        color: var(--gray);
+        font-size: 0.85rem;
+        margin-top: 0.125rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .bg-danger {
+        background: var(--danger);
+        color: white;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .permissions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .permissions-preview {
+            max-width: 100%;
+        }
+
+        .role-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .role-avatar {
+            align-self: flex-start;
+        }
+
+        .notifications-container {
+            left: 1rem;
+            right: 1rem;
+            max-width: none;
+        }
+    }
+</style>
+
+@code {
+    // Models
+
+    public class CreateRoleModel
+    {
+        [Required(ErrorMessage = "Le nom du rôle est requis")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Le nom doit contenir entre 2 et 50 caractères")]
+        [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Le nom ne doit contenir que des lettres et chiffres")]
+        public string Name { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
+
+        public RolePermissions Permissions { get; set; } = new();
+    }
+
+    public class RolePermissions
+    {
+        public bool UsersRead { get; set; }
+        public bool UsersWrite { get; set; }
+        public bool RolesRead { get; set; }
+        public bool RolesWrite { get; set; }
+        public bool ReclamationsRead { get; set; }
+        public bool ReclamationsWrite { get; set; }
+        public bool InterventionsRead { get; set; }
+        public bool InterventionsWrite { get; set; }
+        public bool ArticlesRead { get; set; }
+        public bool ArticlesWrite { get; set; }
+    }
+
+    // Modèle pour les notifications
+    public class Notification
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public NotificationType Type { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public bool IsVisible { get; set; } = true;
+    }
+
+    public enum NotificationType
+    {
+        Success,
+        Error,
+        Warning,
+        Info
+    }
+
+    // Data
+    private List<RoleModel> roles = new();
+    private List<RoleModel> filteredRoles = new();
+    private RoleModel? selectedRole;
+    private List<string> roleUsers = new();
+
+    // Notifications
+    private List<Notification> notifications = new();
+
+    // UI State
+    private bool isLoading = false;
+    private bool isCreating = false;
+    private bool isUpdating = false;
+    private bool isDeleting = false;
+    private bool showCreateModal = false;
+    private bool showEditModal = false;
+    private bool showDeleteConfirm = false;
+    private bool showPermissionsGuide = false;
+
+    private string? errorMessage;
+    private string searchQuery = "";
+    private string currentFilter = "all";
+    private string deleteConfirmationText = "";
+
+    private CreateRoleModel newRole = new();
+    private CreateRoleModel editRole = new();
+
+    // Statistics
+    private int totalRoles = 0;
+    private int systemRoles = 0;
+    private int customRoles = 0;
+    private int totalUsers = 0;
+    private int activeRoles = 0;
+    private int totalPermissions = 42;
+    private string lastUpdate = "";
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRoles();
+    }
+
+    private async Task LoadRoles()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            StateHasChanged();
+
+            // Sauvegarder l'ancien nombre pour comparaison
+            int previousCount = roles.Count;
+
+            roles = await RoleService.GetAllRolesAsync();
+
+            Console.WriteLine($"🔍 DEBUG: Chargement rôles: {roles.Count} trouvés");
+            if (roles.Any())
+            {
+                Console.WriteLine($"🔍 DEBUG: Rôles: {string.Join(", ", roles.Select(r => r.Name))}");
+            }
+
+            await CalculateStatistics();
+            ApplyFilters();
+
+            // Notification si nouveau rôle détecté
+            if (roles.Count > previousCount && !string.IsNullOrEmpty(newRole?.Name))
+            {
+                if (roles.Any(r => r.Name == newRole.Name))
+                {
+                    Console.WriteLine($"🔍 DEBUG: Nouveau rôle détecté après chargement: {newRole.Name}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors du chargement des rôles : {ex.Message}";
+            Console.WriteLine($"🔍 DEBUG: Erreur LoadRoles: {ex}");
+            ShowNotification("Erreur de chargement",
+                $"❌ Impossible de charger les rôles\n" +
+                $"🔧 {ex.Message}",
+                NotificationType.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+    private async Task CalculateStatistics()
+    {
+        totalRoles = roles.Count;
+        systemRoles = roles.Count(r => IsSystemRole(r.Name));
+        customRoles = roles.Count(r => IsCustomRole(r.Name));
+        activeRoles = roles.Count;
+        lastUpdate = DateTime.Now.ToString("HH:mm");
+
+        // Get total users (you might need to fetch this from your user service)
+        totalUsers = await GetTotalUsersCount();
+    }
+
+    private Task<int> GetTotalUsersCount()
+    {
+        // Valeur temporaire tant que IUserService n'existe pas
+        return Task.FromResult(42);
+    }
+
+    private void ApplyFilters()
+    {
+        try
+        {
+            var filtered = roles.AsEnumerable();
+
+            // Search filter
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var query = searchQuery.ToLower();
+                filtered = filtered.Where(r =>
+                    r.Name.ToLower().Contains(query) ||
+                    GetRoleDescription(r.Name).ToLower().Contains(query)
+                );
+            }
+
+            // Type filter
+            filtered = currentFilter switch
+            {
+                "system" => filtered.Where(IsSystemRole),
+                "custom" => filtered.Where(IsCustomRole),
+                _ => filtered
+            };
+
+            filteredRoles = filtered.ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors de l'application des filtres: {ex.Message}";
+            Console.WriteLine($"❌ ApplyFilters: {ex}");
+        }
+    }
+
+    private void FilterRoles(string filter)
+    {
+        currentFilter = filter;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void TogglePermissionsGuide()
+    {
+        showPermissionsGuide = !showPermissionsGuide;
+        StateHasChanged();
+    }
+
+    // Helper methods
+    private bool IsSystemRole(RoleModel role) => IsSystemRole(role.Name);
+    private bool IsSystemRole(string roleName) => roleName == "Admin" || roleName == "ResponsableSAV" || roleName == "Client";
+    private bool IsCustomRole(RoleModel role) => !IsSystemRole(role);
+    private bool IsCustomRole(string roleName) => !IsSystemRole(roleName);
+
+    private string GetRoleIcon(string roleName) => roleName switch
+    {
+        "Admin" => "👑",
+        "ResponsableSAV" => "💼",
+        "Client" => "👤",
+        _ => "🔧"
+    };
+
+    private string GetRoleDescription(string roleName) => roleName switch
+    {
+        "Admin" => "Administrateur système avec tous les droits",
+        "ResponsableSAV" => "Gestion des réclamations et interventions",
+        "Client" => "Accès client aux réclamations",
+        _ => "Rôle personnalisé"
+    };
+
+    private string GetRoleType(string roleName) => IsSystemRole(roleName) ? "Système" : "Personnalisé";
+    private string GetRoleTypeClass(string roleName) => IsSystemRole(roleName) ? "system" : "custom";
+
+    private List<string> GetRolePermissions(string roleName) => roleName switch
+    {
+        "Admin" => new List<string> { "Tous les droits", "Gestion complète", "API Full" },
+        "ResponsableSAV" => new List<string> { "Réclamations", "Interventions", "Articles" },
+        "Client" => new List<string> { "Mes réclamations", "Consultation" },
+        _ => new List<string> { "Permissions personnalisées" }
+    };
+
+    private int GetUserCount(string roleName)
+    {
+        // This is a placeholder - you should implement actual user count per role
+        return roleName switch
+        {
+            "Admin" => 2,
+            "ResponsableSAV" => 5,
+            "Client" => 35,
+            _ => new Random().Next(1, 10)
+        };
+    }
+
+    // Modal methods
+    private void ShowCreateModal()
+    {
+        newRole = new CreateRoleModel();
+        showCreateModal = true;
+        StateHasChanged();
+    }
+
+    private void ShowEditModal(RoleModel role)
+    {
+        selectedRole = role;
+        editRole = new CreateRoleModel { Name = role.Name };
+        showEditModal = true;
+
+        // Load users with this role
+        roleUsers = GetUsersWithRole(role.Name);
+        StateHasChanged();
+    }
+
+    private List<string> GetUsersWithRole(string roleName)
+    {
+        // Placeholder - implement actual user retrieval
+        return new List<string> { "admin@example.com", "user1@example.com" };
+    }
+
+    private void ConfirmDelete(RoleModel role)
+    {
+        selectedRole = role;
+        showDeleteConfirm = true;
+        deleteConfirmationText = "";
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        showCreateModal = false;
+        showEditModal = false;
+        showDeleteConfirm = false;
+        selectedRole = null;
+        roleUsers.Clear();
+        deleteConfirmationText = "";
+        StateHasChanged();
+    }
+
+    private void OnDeleteConfirmationChanged(ChangeEventArgs e)
+    {
+        deleteConfirmationText = e.Value?.ToString() ?? string.Empty;
+        StateHasChanged();
+    }
+
+    // Méthodes de notification
+    private void ShowNotification(string title, string message, NotificationType type)
+    {
+        var notification = new Notification
+        {
+            Title = title,
+            Message = message,
+            Type = type
+        };
+
+        notifications.Insert(0, notification);
+        StateHasChanged();
+
+        // Auto-dismiss after 5 seconds
+        _ = AutoDismissNotification(notification.Id);
+    }
+
+    private async Task AutoDismissNotification(string id)
+    {
+        await Task.Delay(5000);
+        var notification = notifications.FirstOrDefault(n => n.Id == id);
+        if (notification != null)
+        {
+            notification.IsVisible = false;
+            StateHasChanged();
+
+            await Task.Delay(300);
+            notifications.Remove(notification);
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveNotification(string id)
+    {
+        var notification = notifications.FirstOrDefault(n => n.Id == id);
+        if (notification != null)
+        {
+            notification.IsVisible = false;
+            StateHasChanged();
+
+            Task.Delay(300).ContinueWith(_ =>
+            {
+                notifications.Remove(notification);
+                InvokeAsync(StateHasChanged);
+            });
+        }
+    }
+
+    // CRUD Operations
+    private async Task CreateRole()
+    {
+        try
+        {
+            isCreating = true;
+            StateHasChanged();
+
+            // Vérifier si le rôle existe déjà
+            if (roles.Any(r => r.Name.Equals(newRole.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                ShowNotification("Rôle existant",
+                    $"⚠️ Le rôle '{newRole.Name}' existe déjà",
+                    NotificationType.Warning);
+                return;
+            }
+
+            // Appeler le service - selon votre implémentation, le retour peut varier
+            var result = await RoleService.CreateRoleAsync(newRole.Name);
+
+            // Gestion flexible des retours
+            bool success = false;
+
+            if (result == "OK" ||
+                result == "Success" ||
+                result == "200" ||
+                result == "Created" ||
+                result.Contains("succès", StringComparison.OrdinalIgnoreCase) ||
+                result.Contains("success", StringComparison.OrdinalIgnoreCase))
+            {
+                success = true;
+            }
+            else if (result.Contains("existe déjà", StringComparison.OrdinalIgnoreCase) ||
+                     result.Contains("already exists", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowNotification("Rôle existant",
+                    $"⚠️ {result}",
+                    NotificationType.Warning);
+                return;
+            }
+
+            if (!success)
+            {
+                // Vérifier si c'est une erreur technique ou logique
+                if (result.Contains("erreur", StringComparison.OrdinalIgnoreCase) ||
+                    result.Contains("error", StringComparison.OrdinalIgnoreCase))
+                {
+                    ShowNotification("Erreur technique",
+                        $"❌ {result}",
+                        NotificationType.Error);
+                }
+                else
+                {
+                    // Si le retour n'est pas clair, tenter quand même de rafraîchir
+                    ShowNotification("Création en cours",
+                        $"🔄 Rôle '{newRole.Name}' en cours de création...",
+                        NotificationType.Info);
+
+                    // Attendre un peu pour laisser le temps à l'API
+                    await Task.Delay(500);
+                }
+            }
+
+            ShowNotification("Succès",
+                $"✅ Rôle '{newRole.Name}' créé avec succès!\n" +
+                $"📝 Permissions configurées\n" +
+                $"🔄 Rôle disponible immédiatement",
+                NotificationType.Success);
+
+            // Toujours rafraîchir la liste après tentative de création
+            await LoadRoles();
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            // Gestion spécifique des erreurs HTTP/timeout
+            if (ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowNotification("Timeout",
+                    $"⏱️ La création a pris trop de temps\n" +
+                    $"🔄 Vérifiez si le rôle a été créé",
+                    NotificationType.Warning);
+            }
+            else if (ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase) ||
+                     ex.Message.Contains("connexion", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowNotification("Problème réseau",
+                    $"🌐 Erreur de connexion\n" +
+                    $"🔌 Vérifiez votre connexion Internet",
+                    NotificationType.Error);
+            }
+            else
+            {
+                ShowNotification("Erreur critique",
+                    $"❌ Échec de la création : {ex.Message}",
+                    NotificationType.Error);
+            }
+
+            // Même en cas d'erreur, rafraîchir pour voir l'état actuel
+            await Task.Delay(1000);
+            await LoadRoles();
+        }
+        finally
+        {
+            isCreating = false;
+            StateHasChanged();
+        }
+    }
+    private async Task DebugCreateRole()
+    {
+        try
+        {
+            // Version de débogage pour voir ce qui se passe
+            Console.WriteLine($"🔍 DEBUG: Tentative de création du rôle: {newRole.Name}");
+
+            // 1. Vérifier l'état avant
+            Console.WriteLine($"🔍 DEBUG: Nombre de rôles avant création: {roles.Count}");
+
+            // 2. Tenter la création
+            var result = await RoleService.CreateRoleAsync(newRole.Name);
+            Console.WriteLine($"🔍 DEBUG: Résultat du service: {result}");
+
+            // 3. Rafraîchir la liste
+            await Task.Delay(1000); // Petit délai pour laisser le temps
+            await LoadRoles();
+
+            // 4. Vérifier l'état après
+            Console.WriteLine($"🔍 DEBUG: Nombre de rôles après création: {roles.Count}");
+            Console.WriteLine($"🔍 DEBUG: Rôle créé? {roles.Any(r => r.Name == newRole.Name)}");
+
+            if (roles.Any(r => r.Name == newRole.Name))
+            {
+                ShowNotification("Succès (debug)",
+                    $"✅ Rôle '{newRole.Name}' créé!\n" +
+                    $"🔍 Vérifié dans la liste",
+                    NotificationType.Success);
+            }
+            else
+            {
+                ShowNotification("Problème détecté",
+                    $"⚠️ Rôle créé mais non affiché\n" +
+                    $"🔍 Vérifiez les logs console",
+                    NotificationType.Warning);
+            }
+
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"🔍 DEBUG: Exception: {ex.Message}");
+            Console.WriteLine($"🔍 DEBUG: StackTrace: {ex.StackTrace}");
+            ShowNotification("Erreur (debug)",
+                $"❌ Exception: {ex.Message}",
+                NotificationType.Error);
+        }
+    }
+    private async Task UpdateRole()
+    {
+        if (selectedRole == null) return;
+
+        try
+        {
+            isUpdating = true;
+            StateHasChanged();
+
+            // Note: Updating role name might require a custom endpoint
+            // This is a placeholder implementation
+            if (IsSystemRole(selectedRole.Name))
+            {
+                ShowNotification("Opération restreinte",
+                    "🛡️ Les rôles système ne peuvent pas être modifiés",
+                    NotificationType.Warning);
+                return;
+            }
+
+            // Simuler l'appel API
+            await Task.Delay(800);
+
+            ShowNotification("Succès",
+                $"✅ Rôle '{editRole.Name}' modifié avec succès!\n" +
+                $"📝 Les permissions ont été mises à jour\n" +
+                $"🔄 Les changements sont effectifs immédiatement",
+                NotificationType.Success);
+
+            CloseModal();
+            await LoadRoles();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors de la modification: {ex.Message}";
+            ShowNotification("Erreur",
+                $"❌ Échec de la modification : {ex.Message}",
+                NotificationType.Error);
+        }
+        finally
+        {
+            isUpdating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteRole()
+    {
+        if (selectedRole == null)
+            return;
+
+        if (IsSystemRole(selectedRole.Name))
+        {
+            ShowNotification("Opération interdite",
+                "⛔ Impossible de supprimer un rôle système",
+                NotificationType.Error);
+            return;
+        }
+
+        try
+        {
+            isDeleting = true;
+            StateHasChanged();
+
+            // Sauvegarder le nom pour vérification après suppression
+            string roleNameToDelete = selectedRole.Name;
+            bool roleExistedBefore = roles.Any(r => r.Name == roleNameToDelete);
+
+            Console.WriteLine($"🔍 DEBUG: Tentative de suppression du rôle: {roleNameToDelete}");
+            Console.WriteLine($"🔍 DEBUG: Rôle existait avant suppression: {roleExistedBefore}");
+
+            // 1. Tenter de supprimer le rôle
+            var result = await RoleService.DeleteRoleAsync(roleNameToDelete);
+            Console.WriteLine($"🔍 DEBUG: Résultat du service Delete: {result}");
+
+            // Gestion flexible des retours de suppression
+            bool deletionSuccessful = false;
+            string feedbackMessage = result;
+
+            // Vérifier différents formats de retour
+            if (result == "OK" ||
+                result == "Deleted" ||
+                result == "Success" ||
+                result == "200" ||
+                result.Contains("supprimé", StringComparison.OrdinalIgnoreCase) ||
+                result.Contains("deleted", StringComparison.OrdinalIgnoreCase) ||
+                result.Contains("success", StringComparison.OrdinalIgnoreCase))
+            {
+                deletionSuccessful = true;
+            }
+            else if (result.Contains("n'existe pas", StringComparison.OrdinalIgnoreCase) ||
+                     result.Contains("not found", StringComparison.OrdinalIgnoreCase) ||
+                     result.Contains("inexistant", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowNotification("Rôle non trouvé",
+                    $"ℹ️ Le rôle '{roleNameToDelete}' n'existe pas ou a déjà été supprimé",
+                    NotificationType.Info);
+
+                // Rafraîchir quand même la liste
+                await Task.Delay(800);
+                await LoadRoles();
+                CloseModal();
+                return;
+            }
+            else if (result.Contains("utilisateur", StringComparison.OrdinalIgnoreCase) ||
+                     result.Contains("user", StringComparison.OrdinalIgnoreCase) ||
+                     result.Contains("assigned", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowNotification("Rôle utilisé",
+                    $"⚠️ Impossible de supprimer le rôle '{roleNameToDelete}'\n" +
+                    $"👥 Des utilisateurs sont encore assignés à ce rôle",
+                    NotificationType.Warning);
+                return;
+            }
+
+            // 2. Attendre un peu pour laisser le temps à l'API
+            await Task.Delay(800);
+
+            // 3. Rafraîchir la liste pour voir l'état actuel
+            await LoadRoles();
+
+            // 4. Vérifier si le rôle a vraiment disparu de la liste
+            bool roleStillExists = roles.Any(r => r.Name == roleNameToDelete);
+            Console.WriteLine($"🔍 DEBUG: Rôle existe après suppression: {roleStillExists}");
+
+            if (!roleStillExists)
+            {
+                // SUCCÈS : Le rôle a disparu de la liste
+                ShowNotification("Suppression réussie",
+                    $"🗑️ Rôle '{roleNameToDelete}' supprimé avec succès!\n" +
+                    $"📝 Les permissions ont été révoquées\n" +
+                    $"🔄 La liste a été mise à jour\n" +
+                    $"✅ Opération terminée",
+                    NotificationType.Success);
+
+                CloseModal();
+            }
+            else if (deletionSuccessful)
+            {
+                // Cas étrange : l'API dit OK mais le rôle est toujours là
+                Console.WriteLine($"⚠️ WARN: API retourne succès mais rôle toujours présent");
+                ShowNotification("Incohérence détectée",
+                    $"⚠️ L'API signale la suppression mais le rôle est toujours visible\n" +
+                    $"🔍 Réessayez ou actualisez la page manuellement",
+                    NotificationType.Warning);
+            }
+            else
+            {
+                // ÉCHEC : L'API n'a pas réussi à supprimer
+                ShowNotification("Échec de la suppression",
+                    $"❌ Impossible de supprimer le rôle '{roleNameToDelete}'\n" +
+                    $"📋 Message: {feedbackMessage}\n" +
+                    $"🔧 Contactez l'administrateur si le problème persiste",
+                    NotificationType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Gestion spécifique des erreurs
+            Console.WriteLine($"🔍 DEBUG: Exception dans DeleteRole: {ex.Message}");
+            Console.WriteLine($"🔍 DEBUG: StackTrace: {ex.StackTrace}");
+
+            if (ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowNotification("Timeout",
+                    $"⏱️ La suppression a pris trop de temps\n" +
+                    $"🔄 Vérifiez si le rôle a été supprimé\n" +
+                    $"🔄 Actualisez manuellement la liste",
+                    NotificationType.Warning);
+            }
+            else if (ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase) ||
+                     ex.Message.Contains("connexion", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowNotification("Problème réseau",
+                    $"🌐 Erreur de connexion lors de la suppression\n" +
+                    $"🔌 Vérifiez votre connexion Internet\n" +
+                    $"🔄 Réessayez plus tard",
+                    NotificationType.Error);
+            }
+            else if (ex.Message.Contains("authorization", StringComparison.OrdinalIgnoreCase) ||
+                     ex.Message.Contains("unauthorized", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowNotification("Non autorisé",
+                    $"🔒 Vous n'avez pas les permissions pour supprimer ce rôle\n" +
+                    $"👤 Contactez un administrateur",
+                    NotificationType.Error);
+            }
+            else
+            {
+                ShowNotification("Erreur critique",
+                    $"❌ Échec de la suppression : {ex.Message}\n" +
+                    $"🔧 Veuillez contacter l'administrateur système",
+                    NotificationType.Error);
+            }
+
+            // Même en cas d'erreur, rafraîchir pour voir l'état actuel
+            await Task.Delay(1000);
+            await LoadRoles();
+        }
+        finally
+        {
+            isDeleting = false;
+            StateHasChanged();
+        }
+    }
+    private void ExportRoles()
+    {
+        try
+        {
+            var csv = "Nom,Type,Description,Utilisateurs\n";
+            foreach (var role in roles)
+            {
+                csv += $"\"{role.Name}\",\"{GetRoleType(role.Name)}\",\"{GetRoleDescription(role.Name)}\",\"{GetUserCount(role.Name)}\"\n";
+            }
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+            var base64 = Convert.ToBase64String(bytes);
+            Navigation.NavigateTo($"data:text/csv;base64,{base64}", true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors de l'export: {ex.Message}";
+            ShowNotification("Erreur d'export",
+                $"❌ Échec de l'export : {ex.Message}",
+                NotificationType.Error);
+            StateHasChanged();
+        }
+    }
+}

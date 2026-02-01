@@ -1,0 +1,23 @@
+2025-12-31 22:47:36.117 +01:00 [INF] === DÉMARRAGE INTERVENTION SERVICE ===
+2025-12-31 22:47:36.170 +01:00 [INF] URLs d'écoute: []
+2025-12-31 22:47:36.180 +01:00 [INF] Environnement: Development
+2025-12-31 22:47:36.183 +01:00 [INF] Mode développement activé
+2025-12-31 22:47:36.192 +01:00 [INF] Swagger UI disponible à: /swagger
+2025-12-31 22:47:37.833 +01:00 [INF] Base de données migrée et initialisée
+2025-12-31 22:47:37.925 +01:00 [INF] Route enregistrée: GET api/Interventions
+2025-12-31 22:47:37.931 +01:00 [INF] Route enregistrée: GET api/Interventions/{id}
+2025-12-31 22:47:37.937 +01:00 [INF] Route enregistrée: GET api/Interventions/reclamation/{reclamationId}
+2025-12-31 22:47:37.942 +01:00 [INF] Route enregistrée: GET api/Interventions/technician/{technicianId}
+2025-12-31 22:47:37.946 +01:00 [INF] Route enregistrée: POST api/Interventions
+2025-12-31 22:47:37.951 +01:00 [INF] Route enregistrée: PUT api/Interventions/{id}
+2025-12-31 22:47:37.956 +01:00 [INF] Route enregistrée: DELETE api/Interventions/{id}
+2025-12-31 22:47:37.961 +01:00 [INF] Route enregistrée: PATCH api/Interventions/{id}/status
+2025-12-31 22:47:37.964 +01:00 [INF] Route enregistrée: GET api/Interventions/dashboard/stats
+2025-12-31 22:47:37.967 +01:00 [INF] Route enregistrée: GET api/Interventions/date-range
+2025-12-31 22:47:37.968 +01:00 [INF] Route enregistrée: GET api/Interventions/status/{status}
+2025-12-31 22:47:37.974 +01:00 [INF] === INTERVENTION SERVICE PRÊT ===
+2025-12-31 22:47:37.975 +01:00 [INF] URLs d'accès:
+2025-12-31 22:47:37.976 +01:00 [INF]   - Page d'accueil: http://localhost:5262/
+2025-12-31 22:47:37.977 +01:00 [INF]   - Swagger UI: http://localhost:5262/swagger
+2025-12-31 22:47:37.980 +01:00 [INF]   - Health Check: http://localhost:5262/health
+2025-12-31 22:48:22.139 +01:00 [INF] Intervention 2 mise à jour

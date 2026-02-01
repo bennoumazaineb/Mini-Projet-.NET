@@ -1,0 +1,78 @@
+{
+  "Routes": [
+    {
+      "UpstreamPathTemplate": "/gateway/auth/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ],
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7137
+        }
+      ],
+      "RouteIsCaseSensitive": false
+    },
+
+    {
+      "UpstreamPathTemplate": "/gateway/reclamations/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ],
+      "DownstreamPathTemplate": "/api/Reclamations/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5001
+        }
+      ],
+      "RouteIsCaseSensitive": false
+    },
+
+    {
+      "UpstreamPathTemplate": "/gateway/interventions/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Patch", "Options" ],
+      "DownstreamPathTemplate": "/api/Interventions/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5262
+        }
+      ],
+      "RouteIsCaseSensitive": false
+    },
+
+    {
+      "UpstreamPathTemplate": "/gateway/articles/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ],
+      "DownstreamPathTemplate": "/api/article/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5049
+        }
+      ],
+      "RouteIsCaseSensitive": false
+    },
+
+    {
+      "UpstreamPathTemplate": "/gateway/categories/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete", "Options" ],
+      "DownstreamPathTemplate": "/api/category/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5049
+        }
+      ],
+      "RouteIsCaseSensitive": false
+    }
+  ],
+
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5241",
+    "DangerousAcceptAnyServerCertificateValidator": true
+  }
+}

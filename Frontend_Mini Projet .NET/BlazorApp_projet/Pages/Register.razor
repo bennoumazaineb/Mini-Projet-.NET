@@ -1,0 +1,882 @@
+﻿@page "/register"
+@using BlazorApp1.Models
+@using BlazorApp1.Services
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Inscription - Système SAV</PageTitle>
+
+<div class="login-container page-enter">
+    <!-- Left Side -->
+    <div class="login-branding">
+        <div class="brand-content">
+            <div class="brand-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h1 class="brand-title">Service Après-Vente</h1>
+            <p class="brand-subtitle">Rejoignez notre communauté SAV</p>
+
+            <div class="brand-features">
+                <div class="feature">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Inscription sécurisée</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-rocket"></i>
+                    <span>Accès immédiat</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-handshake"></i>
+                    <span>Support dédié</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side -->
+    <div class="login-form-container">
+        <div class="form-wrapper @(ShakeForm ? "shake" : "")">
+            <div class="form-header">
+                <div class="avatar">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2>Créer un compte</h2>
+                <p>Rejoignez notre plateforme SAV</p>
+            </div>
+
+            <div class="form-body">
+                @if (!string.IsNullOrEmpty(Message))
+                {
+                    <div class="alert @(IsSuccess ? "alert-success" : "alert-error")">
+                        <i class="fas @(IsSuccess ? "fa-check-circle" : "fa-exclamation-circle")"></i>
+                        <span>@Message</span>
+                        <button class="alert-close" type="button" @onclick="() => Message = string.Empty">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                }
+
+                <EditForm Model="@RegisterModel" OnValidSubmit="@HandleRegister">
+                    <DataAnnotationsValidator />
+
+                    <!-- ✅ Grid responsive des champs -->
+                    <div class="form-grid">
+                        <!-- Username -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-user"></i><span>Nom d'utilisateur</span>
+                            </label>
+                            <div class="input-with-icon">
+                                <InputText @bind-Value="RegisterModel.Username" class="form-input" placeholder="john_doe" />
+                                <i class="input-icon fas fa-user-circle"></i>
+                            </div>
+                            <ValidationMessage For="@(() => RegisterModel.Username)" class="validation-message" />
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-envelope"></i><span>Adresse email</span>
+                            </label>
+                            <div class="input-with-icon">
+                                <InputText @bind-Value="RegisterModel.Email" class="form-input" placeholder="john@entreprise.com" />
+                                <i class="input-icon fas fa-at"></i>
+                            </div>
+                            <ValidationMessage For="@(() => RegisterModel.Email)" class="validation-message" />
+                        </div>
+
+                        <!-- First Name -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-id-card"></i><span>Prénom</span>
+                            </label>
+                            <div class="input-with-icon">
+                                <InputText @bind-Value="RegisterModel.FirstName" class="form-input" placeholder="John" />
+                                <i class="input-icon fas fa-user-edit"></i>
+                            </div>
+                            <ValidationMessage For="@(() => RegisterModel.FirstName)" class="validation-message" />
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-id-card"></i><span>Nom</span>
+                            </label>
+                            <div class="input-with-icon">
+                                <InputText @bind-Value="RegisterModel.LastName" class="form-input" placeholder="Doe" />
+                                <i class="input-icon fas fa-user-tag"></i>
+                            </div>
+                            <ValidationMessage For="@(() => RegisterModel.LastName)" class="validation-message" />
+                        </div>
+
+                        <!-- Password (full width) -->
+                        <div class="form-group full">
+                            <label class="form-label">
+                                <i class="fas fa-lock"></i><span>Mot de passe</span>
+                            </label>
+                            <div class="input-with-icon">
+                                <InputText type="@PasswordFieldType" @bind-Value="RegisterModel.Password" class="form-input" placeholder="Votre mot de passe" />
+                                <i class="input-icon fas fa-key"></i>
+                                <button type="button" class="password-toggle" @onclick="TogglePasswordVisibility">
+                                    <i class="fas @(ShowPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                                </button>
+                            </div>
+                            <ValidationMessage For="@(() => RegisterModel.Password)" class="validation-message" />
+                            <div class="password-hint">
+                                <small>Minimum 8 caractères, avec majuscule et chiffre</small>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password (full width) -->
+                        <div class="form-group full">
+                            <label class="form-label">
+                                <i class="fas fa-lock"></i><span>Confirmer le mot de passe</span>
+                            </label>
+                            <div class="input-with-icon">
+                                <InputText type="@ConfirmPasswordFieldType" @bind-Value="ConfirmPassword" class="form-input" placeholder="Répétez le mot de passe" />
+                                <i class="input-icon fas fa-key"></i>
+                                <button type="button" class="password-toggle" @onclick="ToggleConfirmPasswordVisibility">
+                                    <i class="fas @(ShowConfirmPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                                </button>
+                            </div>
+                            @if (!string.IsNullOrEmpty(PasswordError))
+                            {
+                                <div class="validation-message">@PasswordError</div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <InputCheckbox @bind-Value="AcceptTerms" />
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">
+                                J'accepte les <a href="#" class="terms-link" @onclick="ShowTerms">conditions</a>
+                            </span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="submit-btn" disabled="@IsLoading">
+                        @if (IsLoading)
+                        {
+                            <span class="btn-loader"></span>
+                            <span>Création en cours...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-user-plus"></i>
+                            <span>Créer mon compte</span>
+                        }
+                    </button>
+
+                    <div class="divider"><span>Ou</span></div>
+
+                    <div class="alternative-actions">
+                        <p>Vous avez déjà un compte ?</p>
+                        <a href="/login" class="register-btn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Se connecter</span>
+                        </a>
+                    </div>
+                </EditForm>
+            </div>
+
+            <div class="form-footer">
+                <p>
+                    <i class="fas fa-info-circle"></i>
+                    Service Après-Vente © @DateTime.Now.Year - Tous droits réservés
+                </p>
+                <div class="footer-links">
+                    <a href="#"><i class="fas fa-shield-alt"></i> Sécurité</a>
+                    <a href="#"><i class="fas fa-question"></i> Aide</a>
+                    <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary-color: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary-color: #7209b7;
+        --success-color: #2ecc71;
+        --error-color: #e74c3c;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --bg-light: #f8f9fa;
+        --bg-white: #ffffff;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+        --shadow-md: 0 4px 10px rgba(0,0,0,0.10);
+        --shadow-lg: 0 14px 35px rgba(0,0,0,0.12);
+        --radius-sm: 10px;
+        --radius-md: 14px;
+        --radius-lg: 18px;
+        --transition: all .25s ease;
+    }
+
+    body {
+        font-family: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+        color: var(--text-primary);
+    }
+
+    /* layout */
+    .login-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 100vh;
+        background: var(--bg-white);
+    }
+
+    .login-branding {
+        background: linear-gradient(135deg,var(--primary-color) 0%,var(--secondary-color) 100%);
+        color: #fff;
+        padding: clamp(2rem, 5vw, 4rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .login-branding::before {
+            content: '';
+            position: absolute;
+            inset: -60%;
+            background: radial-gradient(circle, rgba(255,255,255,.12) 1px, transparent 1px);
+            background-size: 28px 28px;
+            opacity: .12;
+            animation: float 20s linear infinite;
+        }
+
+    .brand-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        max-width: 520px;
+    }
+
+    .brand-icon {
+        font-size: clamp(3rem, 5vw, 4rem);
+        margin-bottom: 1.5rem;
+        opacity: .95;
+    }
+
+    .brand-title {
+        font-size: clamp(2rem, 4vw, 2.5rem);
+        font-weight: 800;
+        margin-bottom: .8rem;
+        letter-spacing: -.5px;
+    }
+
+    .brand-subtitle {
+        opacity: .92;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .brand-features {
+        text-align: left;
+        margin-top: 2rem;
+    }
+
+    .feature {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+        .feature i {
+            margin-right: .9rem;
+            opacity: .9;
+        }
+
+    .login-form-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(1rem, 3vw, 2rem);
+        background: var(--bg-light);
+    }
+
+    .form-wrapper {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        padding: clamp(1.5rem, 3vw, 3rem);
+        width: 100%;
+        max-width: 520px;
+        border: 1px solid rgba(226,232,240,.8);
+        animation: slideIn .45s ease both;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .avatar {
+        width: 76px;
+        height: 76px;
+        background: linear-gradient(135deg,var(--primary-color) 0%,var(--primary-dark) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 2.2rem;
+        color: #fff;
+        box-shadow: 0 10px 20px rgba(67,97,238,.25);
+        transition: var(--transition);
+    }
+
+        .avatar:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+    .form-header h2 {
+        font-size: 1.9rem;
+        font-weight: 800;
+        margin-bottom: .35rem;
+    }
+
+    .form-header p {
+        color: var(--text-secondary);
+    }
+
+    /* ✅ grid fields */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 14px;
+        margin-top: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        margin-bottom: .45rem;
+        font-weight: 650;
+        color: var(--text-primary);
+        gap: .5rem;
+    }
+
+        .form-label i {
+            color: var(--primary-color);
+        }
+
+    .input-with-icon {
+        position: relative;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: .95rem 2.75rem .95rem 3rem;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        background: #f9fafb;
+        transition: var(--transition);
+    }
+
+        .form-input:focus {
+            outline: none;
+            background: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(67,97,238,.12);
+            transform: translateY(-1px);
+        }
+    /* ================= ICON ANIMATIONS ================= */
+
+    /* 🔄 1. Avatar : rotation douce au hover */
+    .avatar i {
+        transition: transform 0.6s ease;
+    }
+
+    .avatar:hover i {
+        transform: rotate(360deg);
+    }
+
+    /* 🌀 2. Features : rotation lente continue */
+    .feature i {
+        display: inline-block;
+        animation: slowRotate 18s linear infinite;
+    }
+
+    /* pause au hover (plus élégant) */
+    .feature:hover i {
+        animation-play-state: paused;
+    }
+
+    /* ✨ 3. Icônes des inputs : petite rotation au focus */
+    .input-with-icon .input-icon {
+        transition: transform 0.4s ease, color 0.4s ease;
+    }
+
+    .form-input:focus ~ .input-icon {
+        transform: rotate(20deg) scale(1.15);
+        color: var(--primary-color);
+    }
+
+    /* ================= KEYFRAMES ================= */
+    @@keyframes slowRotate {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+        opacity: .9;
+        pointer-events: none;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: .8rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #fff;
+        border: 1px solid rgba(226,232,240,.9);
+        color: var(--text-secondary);
+        border-radius: 10px;
+        padding: .45rem .55rem;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .password-toggle:hover {
+            color: var(--primary-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+    .validation-message {
+        margin-top: .35rem;
+        font-size: .85rem;
+        color: var(--error-color);
+    }
+
+    .password-hint {
+        margin-top: .35rem;
+        color: var(--text-secondary);
+        font-size: .75rem;
+        padding-left: .25rem;
+    }
+
+    /* alerts */
+    .alert {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        padding: .9rem 1rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+        animation: slideDown .25s ease both;
+        border: 1px solid transparent;
+    }
+
+    .alert-success {
+        background: rgba(46,204,113,.12);
+        border-color: rgba(46,204,113,.35);
+        color: var(--success-color);
+    }
+
+    .alert-error {
+        background: rgba(231,76,60,.12);
+        border-color: rgba(231,76,60,.35);
+        color: var(--error-color);
+    }
+
+    .alert-close {
+        margin-left: auto;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        opacity: .85;
+        transition: var(--transition);
+    }
+
+        .alert-close:hover {
+            opacity: 1;
+            transform: rotate(6deg);
+        }
+
+    /* terms */
+    .form-options {
+        margin: 14px 0 16px;
+    }
+
+    .checkbox-label {
+        color: var(--text-secondary);
+    }
+
+    .terms-link {
+        color: var(--primary-color);
+        font-weight: 650;
+        text-decoration: none;
+    }
+
+        .terms-link:hover {
+            text-decoration: underline;
+        }
+
+    /* buttons */
+    .submit-btn {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg,var(--primary-color) 0%,var(--primary-dark) 100%);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: .75rem;
+        transition: var(--transition);
+        box-shadow: 0 10px 22px rgba(67,97,238,.22);
+    }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(67,97,238,.26);
+        }
+
+        .submit-btn:disabled {
+            opacity: .75;
+            cursor: not-allowed;
+        }
+
+    .btn-loader {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,.35);
+        border-top-color: #fff;
+        animation: spin 1s linear infinite;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        color: var(--text-secondary);
+    }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .divider span {
+            padding: 0 1rem;
+            font-size: .9rem;
+        }
+
+    .alternative-actions {
+        text-align: center;
+    }
+
+        .alternative-actions p {
+            color: var(--text-secondary);
+            margin-bottom: .8rem;
+        }
+
+    .register-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .7rem;
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid var(--primary-color);
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        color: var(--primary-color);
+        font-weight: 700;
+        background: transparent;
+        transition: var(--transition);
+    }
+
+        .register-btn:hover {
+            background: var(--primary-color);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+    /* footer */
+    .form-footer {
+        margin-top: 2rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--border-color);
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: .9rem;
+    }
+
+    .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+        margin-top: .75rem;
+    }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            gap: .35rem;
+            align-items: center;
+        }
+
+            .footer-links a:hover {
+                color: var(--primary-color);
+            }
+
+    /* animations */
+    .page-enter {
+        animation: pageEnter .35s ease both;
+    }
+
+    .shake {
+        animation: shake .35s ease;
+    }
+
+    @@keyframes pageEnter {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes float {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+
+        20% {
+            transform: translateX(-6px);
+        }
+
+        40% {
+            transform: translateX(6px);
+        }
+
+        60% {
+            transform: translateX(-4px);
+        }
+
+        80% {
+            transform: translateX(4px);
+        }
+    }
+
+    /* ✅ Responsive */
+    @@media (max-width: 1024px) {
+        .login-container {
+            grid-template-columns: 1fr;
+        }
+
+        .login-branding {
+            display: none;
+        }
+
+        .login-form-container {
+            min-height: 100vh;
+        }
+
+        .form-wrapper {
+            max-width: 560px;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-wrapper {
+            padding: 1.25rem;
+            border-radius: 14px;
+        }
+
+        .form-input {
+            padding-left: 2.75rem;
+        }
+
+        .avatar {
+            width: 64px;
+            height: 64px;
+            font-size: 2rem;
+        }
+    }
+</style>
+
+@code {
+    private RegisterRequest RegisterModel { get; set; } = new();
+    private string ConfirmPassword { get; set; } = string.Empty;
+
+    private bool IsLoading { get; set; }
+    private string Message { get; set; } = string.Empty;
+    private bool IsSuccess { get; set; }
+    private bool AcceptTerms { get; set; }
+
+    private bool ShowPassword { get; set; }
+    private bool ShowConfirmPassword { get; set; }
+    private string PasswordError { get; set; } = string.Empty;
+
+    private bool ShakeForm { get; set; }
+
+    private string PasswordFieldType => ShowPassword ? "text" : "password";
+    private string ConfirmPasswordFieldType => ShowConfirmPassword ? "text" : "password";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (await AuthService.IsAuthenticatedAsync())
+            Navigation.NavigateTo("/home", forceLoad: true);
+    }
+
+    private async Task HandleRegister()
+    {
+        ShakeForm = false;
+
+        if (!AcceptTerms)
+        {
+            Message = "Vous devez accepter les conditions d'utilisation";
+            IsSuccess = false;
+            ShakeForm = true;
+            return;
+        }
+
+        if (RegisterModel.Password != ConfirmPassword)
+        {
+            PasswordError = "Les mots de passe ne correspondent pas";
+            Message = "Veuillez vérifier les mots de passe";
+            IsSuccess = false;
+            ShakeForm = true;
+            return;
+        }
+
+        PasswordError = string.Empty;
+        IsLoading = true;
+        Message = string.Empty;
+
+        try
+        {
+            var response = await AuthService.RegisterAsync(RegisterModel);
+
+            if (response.IsAuthenticated)
+            {
+                IsSuccess = true;
+                Message = "🎉 Compte créé avec succès !";
+                Navigation.NavigateTo("/home", forceLoad: true);
+            }
+            else
+            {
+                IsSuccess = false;
+                Message = $"❌ {response.Message}";
+                ShakeForm = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            IsSuccess = false;
+            Message = $"⚠️ Erreur : {ex.Message}";
+            ShakeForm = true;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void TogglePasswordVisibility() => ShowPassword = !ShowPassword;
+    private void ToggleConfirmPasswordVisibility() => ShowConfirmPassword = !ShowConfirmPassword;
+
+    private async Task ShowTerms()
+    {
+        await JSRuntime.InvokeVoidAsync("alert",
+            "Conditions d'utilisation :\n\n" +
+            "1. Utilisation autorisée uniquement pour la gestion SAV\n" +
+            "2. Respect de la confidentialité des données\n" +
+            "3. Pas d'utilisation frauduleuse du système\n" +
+            "4. Responsabilité de la sécurité du compte\n" +
+            "5. Conformité aux politiques internes de l'entreprise");
+    }
+}

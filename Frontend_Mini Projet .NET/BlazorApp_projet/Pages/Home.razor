@@ -1,0 +1,1515 @@
+﻿@page "/home"
+@using BlazorApp1.Services
+@using BlazorApp1.Models
+@inject IAuthService AuthService
+@inject IReclamationService ReclamationService
+@inject NavigationManager Navigation
+
+<PageTitle>Tableau de Bord - Système SAV</PageTitle>
+
+<div class="dash-page page-enter">
+    <!-- Background blobs -->
+    <div class="bg-blobs" aria-hidden="true">
+        <span class="blob b1"></span>
+        <span class="blob b2"></span>
+        <span class="blob b3"></span>
+    </div>
+
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <!-- TOP HEADER -->
+            <div class="header-content">
+                <!-- LEFT -->
+                <div class="header-left">
+                    <a class="logo" href="/home">
+                        <span class="logo-badge">
+                            <i class="fas fa-headset icon-float"></i>
+                        </span>
+                        <div class="logo-text">
+                            <h1>Service Après-Vente</h1>
+                            <span class="logo-sub">Tableau de bord</span>
+                        </div>
+                    </a>
+
+                    <nav class="breadcrumb">
+                        <a href="/home"><i class="fas fa-home"></i> Accueil</a>
+                        <span class="sep">›</span>
+                        <span class="current">Dashboard</span>
+                    </nav>
+                </div>
+
+                <!-- RIGHT -->
+                <div class="header-right">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="user-name">Bienvenue</span>
+
+                        <button class="logout-btn" title="Déconnexion" @onclick="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN NAV -->
+            <nav class="main-nav">
+                <a href="/gestion-utilisateur" class="nav-item active">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Utilisateurs</span>
+                </a>
+
+                <a href="/gestion-roles" class="nav-item">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Rôles</span>
+                </a>
+
+                <a href="/gestion-articles" class="nav-item">
+                    <i class="fas fa-box"></i>
+                    <span>Articles</span>
+                </a>
+                <NavLink class="nav-item" href="/gestion-interventions">
+                    <i class="fas fa-box"></i>
+                    <span>Interventions</span>
+                </NavLink>
+
+
+                <a href="/gestion-reclamations" class="nav-item">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Réclamations</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="dashboard-main">
+        <div class="container">
+
+            <!-- Welcome / Hero -->
+            <section class="welcome-section">
+                <div class="welcome-top">
+                    <div class="welcome-text">
+                        <h2>Bienvenue sur votre tableau de bord</h2>
+                        <p>
+                            Gérez efficacement les tickets, les interventions et les performances du SAV
+                            depuis une interface unique.
+                        </p>
+
+                        <div class="welcome-actions">
+                            <a class="btn btn-primary btn-shine" href="/tickets/new">
+                                <i class="fas fa-plus-circle me-2 icon-float"></i>Nouveau ticket
+                            </a>
+                            <a class="btn btn-outline" href="/gestion-reclamations">
+                                <i class="fas fa-tasks me-2 icon-float"></i>Voir les réclamations
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="welcome-mini-cards">
+                        <div class="mini-card">
+                            <div class="mini-ico">
+                                <i class="fas fa-bolt icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Priorité</div>
+                                <div class="mini-value">Urgences</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card">
+                            <div class="mini-ico">
+                                <i class="fas fa-shield-alt icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Sécurité</div>
+                                <div class="mini-value">Active</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="welcome-stats">
+                    <div class="stat-card">
+                        <div class="stat-ico">
+                            <i class="fas fa-ticket-alt icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>24</h3>
+                            <p>Tickets ouverts</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-ico success">
+                            <i class="fas fa-check-circle icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>156</h3>
+                            <p>Tickets résolus</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-ico info">
+                            <i class="fas fa-users icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>12</h3>
+                            <p>Techniciens actifs</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-ico warn">
+                            <i class="fas fa-clock icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>2.3h</h3>
+                            <p>Temps moyen de réponse</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Réclamations Section -->
+            <section class="welcome-section reclamations-hero">
+                <div class="welcome-top">
+                    <div class="welcome-text">
+                        <h2>Gestion des Réclamations</h2>
+                        <p>Suivi en temps réel de tous les tickets de réclamation clients</p>
+
+                        <div class="welcome-actions">
+                            <a class="btn btn-primary btn-shine" href="/gestion-reclamations">
+                                <i class="fas fa-clipboard-check me-2 icon-float"></i>Gérer les réclamations
+                            </a>
+                            <a class="btn btn-outline" href="/gestion-reclamations?new=true">
+                                <i class="fas fa-plus-circle me-2 icon-float"></i>Nouvelle réclamation
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="welcome-mini-cards">
+                        <div class="mini-card" @onclick='() => NavigateToReclamations("all")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-clipboard-list icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Total</div>
+                                <div class="mini-value">@reclamationStats.TotalReclamations</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card" @onclick='() => NavigateToReclamations("NonTraitee")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-clock icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Non Traitées</div>
+                                <div class="mini-value">@reclamationStats.NonTraitees</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card" @onclick='() => NavigateToReclamations("EnCours")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-spinner icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">En Cours</div>
+                                <div class="mini-value">@reclamationStats.EnCours</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card" @onclick='() => NavigateToReclamations("Traitee")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-check-circle icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Traitées</div>
+                                <div class="mini-value">@reclamationStats.Traitees</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (isLoadingReclamations)
+                {
+                    <div class="stat-card loading-placeholder">
+                        <div class="spinner-small"></div>
+                        <p>Chargement des statistiques...</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="welcome-stats">
+                        <div class="stat-card">
+                            <div class="stat-ico">
+                                <i class="fas fa-user-tie icon-float"></i>
+                            </div>
+                            <div class="stat-meta">
+                                <h3>@reclamationStats.AvecResponsable</h3>
+                                <p>Avec responsable assigné</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-ico success">
+                                <i class="fas fa-shield-alt icon-float"></i>
+                            </div>
+                            <div class="stat-meta">
+                                <h3>@reclamationStats.SousGarantie</h3>
+                                <p>Sous garantie</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-ico info">
+                                <i class="fas fa-calendar-alt icon-float"></i>
+                            </div>
+                            <div class="stat-meta">
+                                <h3>@reclamationStats.MoyenneJours.ToString("F1") j</h3>
+                                <p>Temps moyen de traitement</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-ico warn">
+                                <i class="fas fa-money-bill-wave icon-float"></i>
+                            </div>
+                            <div class="stat-meta">
+                                <h3>@reclamationStats.TotalMontantFacture.ToString("C2")</h3>
+                                <p>Valeur totale</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </section>
+
+            <!-- Grid: Quick actions + Activity -->
+            <section class="grid-2">
+                <!-- Quick Actions -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2 class="section-title">Actions rapides</h2>
+                        <a class="link" href="/gestion-reclamations">Gérer tout</a>
+                    </div>
+
+                    <div class="quick-actions-grid">
+                        <a class="action-card" href="/gestion-reclamations?new=true">
+                            <div class="action-icon">
+                                <i class="fas fa-plus-circle icon-float"></i>
+                            </div>
+                            <div>
+                                <h3>Nouvelle réclamation</h3>
+                                <p>Créer un ticket de support</p>
+                            </div>
+                        </a>
+
+                        <a class="action-card" href="/gestion-reclamations">
+                            <div class="action-icon">
+                                <i class="fas fa-tasks icon-float"></i>
+                            </div>
+                            <div>
+                                <h3>Gérer réclamations</h3>
+                                <p>Suivre et organiser</p>
+                            </div>
+                        </a>
+
+                        <a class="action-card" href="/gestion-utilisateur">
+                            <div class="action-icon">
+                                <i class="fas fa-user-cog icon-float"></i>
+                            </div>
+                            <div>
+                                <h3>Utilisateurs</h3>
+                                <p>Gérer les comptes</p>
+                            </div>
+                        </a>
+
+                        <a class="action-card" href="/gestion-articles">
+                            <div class="action-icon">
+                                <i class="fas fa-chart-bar icon-float"></i>
+                            </div>
+                            <div>
+                                <h3>Articles</h3>
+                                <p>Analyses et stats</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Activity -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2 class="section-title">Activité récente</h2>
+                        <a class="link" href="/gestion-reclamations">Voir tout</a>
+                    </div>
+
+                    <div class="activity-list">
+                        @if (recentReclamations.Any())
+                        {
+                            @foreach (var reclamation in recentReclamations.Take(4))
+                            {
+                                <div class="activity-item">
+                                    <div class="activity-icon @GetActivityIconClass(reclamation.Statut)">
+                                        <i class="@GetActivityIcon(reclamation.Statut)"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <h4>Réclamation #@reclamation.Id: @reclamation.Titre</h4>
+                                        <p>Client: @reclamation.ClientNom</p>
+                                        <span class="activity-time">@reclamation.DateCreation.ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="activity-item">
+                                <div class="activity-icon info">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <h4>Aucune réclamation</h4>
+                                    <p>Pas d'activité récente</p>
+                                    <span class="activity-time">À jour</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Section -->
+            <section class="panel performance-section">
+                <div class="panel-head">
+                    <h2 class="section-title">Performances du SAV</h2>
+                    <span class="muted">Aperçu global</span>
+                </div>
+
+                <div class="performance-grid">
+                    <div class="performance-card">
+                        <div class="performance-header">
+                            <h3>Taux de satisfaction</h3>
+                            <span class="performance-value success">94%</span>
+                        </div>
+                        <div class="performance-progress">
+                            <div class="progress-bar p94"></div>
+                        </div>
+                    </div>
+
+                    <div class="performance-card">
+                        <div class="performance-header">
+                            <h3>Temps de résolution moyen</h3>
+                            <span class="performance-value info">4.2h</span>
+                        </div>
+                        <div class="performance-progress">
+                            <div class="progress-bar p85"></div>
+                        </div>
+                    </div>
+
+                    <div class="performance-card">
+                        <div class="performance-header">
+                            <h3>Tickets en attente</h3>
+                            <span class="performance-value warn">@reclamationStats.NonTraitees</span>
+                        </div>
+                        <div class="performance-progress">
+                            <div class="progress-bar @GetProgressClass(reclamationStats.NonTraitees)"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-left">
+                    <i class="fas fa-info-circle"></i>
+                    Service Après-Vente © @DateTime.Now.Year - Tous droits réservés
+                </p>
+                <div class="footer-right">
+                    <a href="#"><i class="fas fa-question-circle"></i> Aide</a>
+                    <a href="#"><i class="fas fa-cog"></i> Paramètres</a>
+                    <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<style>
+    :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary: #7209b7;
+        --success: #2ecc71;
+        --warning: #f39c12;
+        --info: #3498db;
+        --danger: #e74c3c;
+        --dark: #2d3748;
+        --gray: #718096;
+        --light: #f7f8fb;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --shadow: 0 14px 35px rgba(0,0,0,.10);
+        --radius: 14px;
+        --transition: all .25s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+        background: var(--light);
+        color: var(--dark);
+        line-height: 1.6;
+    }
+
+    .main-nav {
+        display: flex;
+        gap: 1rem;
+        margin-top: .8rem;
+        padding: .6rem 0;
+        border-top: 1px solid var(--border);
+    }
+
+    .dashboard-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgba(226, 232, 240, .8);
+        animation: headerDrop .45s ease-out;
+    }
+
+    @@keyframes headerDrop {
+        from {
+            opacity: 0;
+            transform: translateY(-12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .main-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.2rem;
+        padding: .7rem 0 .9rem;
+        animation: navFade .6s ease both;
+    }
+
+    @@keyframes navFade {
+        from {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .nav-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .55rem 1.1rem;
+        border-radius: 14px;
+        text-decoration: none;
+        color: var(--gray);
+        font-weight: 800;
+        transition: all .3s ease;
+        overflow: hidden;
+    }
+
+        .nav-item::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity .35s ease;
+        }
+
+        .nav-item:hover::before,
+        .nav-item.active::before {
+            opacity: 1;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(67,97,238,.35);
+        }
+
+        .nav-item i {
+            font-size: 1rem;
+        }
+
+    .user-info {
+        transition: transform .25s ease, box-shadow .25s ease;
+    }
+
+        .user-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0,0,0,.12);
+        }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .dash-page {
+        position: relative;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .page-enter {
+        animation: pageEnter .35s ease both;
+    }
+
+    @@keyframes pageEnter {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bg-blobs {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    .blob {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(30px);
+        opacity: .35;
+        animation: blobFloat 10s ease-in-out infinite;
+        background: radial-gradient(circle at 30% 30%, rgba(114,9,183,.55), rgba(67,97,238,.35));
+    }
+
+    .b1 {
+        width: 420px;
+        height: 420px;
+        top: -160px;
+        left: -140px;
+    }
+
+    .b2 {
+        width: 520px;
+        height: 520px;
+        bottom: -220px;
+        right: -220px;
+        animation-delay: .6s;
+    }
+
+    .b3 {
+        width: 320px;
+        height: 320px;
+        top: 25%;
+        right: 20%;
+        opacity: .25;
+        animation-delay: 1.1s;
+    }
+
+    @@keyframes blobFloat {
+        0% {
+            transform: translateY(0) translateX(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-18px) translateX(10px) scale(1.03);
+        }
+
+        100% {
+            transform: translateY(0) translateX(0) scale(1);
+        }
+    }
+
+    .icon-float {
+        display: inline-block;
+        animation: iconFloat 3.2s ease-in-out infinite;
+    }
+
+    @@keyframes iconFloat {
+        0% {
+            transform: translateY(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-3px) scale(1.06);
+        }
+
+        100% {
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .dashboard-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(226,232,240,.8);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.4rem;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .logo-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(67,97,238,.22);
+    }
+
+    .logo-text h1 {
+        font-size: 1.1rem;
+        font-weight: 900;
+        margin: 0;
+        letter-spacing: -.2px;
+    }
+
+    .logo-sub {
+        font-size: .85rem;
+        color: var(--gray);
+        display: block;
+        margin-top: -2px;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        color: var(--gray);
+        font-size: .92rem;
+    }
+
+        .breadcrumb a {
+            color: var(--gray);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            transition: var(--transition);
+        }
+
+            .breadcrumb a:hover {
+                color: var(--primary);
+            }
+
+    .sep {
+        opacity: .6;
+    }
+
+    .current {
+        color: var(--dark);
+        font-weight: 700;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        padding: .55rem .75rem;
+        background: rgba(247,248,251,.9);
+        border: 1px solid rgba(226,232,240,.9);
+        border-radius: var(--radius);
+        box-shadow: 0 8px 20px rgba(0,0,0,.06);
+    }
+
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.25rem;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    .user-name {
+        font-weight: 800;
+        font-size: .92rem;
+    }
+
+    .logout-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--danger);
+        transition: var(--transition);
+    }
+
+        .logout-btn:hover {
+            background: rgba(67,97,238,.10);
+            color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+    .dashboard-main {
+        position: relative;
+        z-index: 1;
+        padding: 1.8rem 0 2rem;
+        min-height: calc(100vh - 140px);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 18px;
+        border-radius: var(--radius);
+        font-weight: 850;
+        text-decoration: none;
+        transition: var(--transition);
+        border: 2px solid transparent;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary {
+        background: #fff;
+        color: var(--primary);
+        box-shadow: 0 14px 30px rgba(0,0,0,.12);
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border-color: rgba(255,255,255,.55);
+        color: #fff;
+    }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,.14);
+            transform: translateY(-2px);
+        }
+
+    .btn-shine::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 70%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+        transform: skewX(-20deg);
+    }
+
+    .btn-shine:hover::before {
+        animation: shine .7s ease;
+    }
+
+    @@keyframes shine {
+        to {
+            left: 140%;
+        }
+    }
+
+    .welcome-section {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff;
+        border-radius: 18px;
+        padding: 2.2rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.6rem;
+        border: 1px solid rgba(255,255,255,.12);
+    }
+
+        .welcome-section.reclamations-hero {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+    .welcome-top {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .welcome-text {
+        max-width: 760px;
+    }
+
+        .welcome-text h2 {
+            font-size: clamp(1.6rem, 3vw, 2.4rem);
+            font-weight: 950;
+            margin-bottom: .6rem;
+            letter-spacing: -.4px;
+        }
+
+        .welcome-text p {
+            opacity: .92;
+            margin-bottom: 1.2rem;
+            max-width: 640px;
+        }
+
+    .welcome-actions {
+        display: flex;
+        gap: .8rem;
+        flex-wrap: wrap;
+        margin-top: .4rem;
+    }
+
+    .welcome-mini-cards {
+        display: flex;
+        gap: .9rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .mini-card {
+        display: flex;
+        gap: .8rem;
+        align-items: center;
+        padding: .9rem 1rem;
+        border-radius: 16px;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.18);
+        backdrop-filter: blur(10px);
+        min-width: 180px;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+        .mini-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,.16);
+        }
+
+    .mini-ico {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.16);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+
+    .mini-title {
+        font-size: .85rem;
+        opacity: .85;
+    }
+
+    .mini-value {
+        font-weight: 900;
+        letter-spacing: -.2px;
+    }
+
+    .welcome-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 1rem;
+        margin-top: 1.4rem;
+    }
+
+    .stat-card {
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 16px;
+        padding: 1.1rem 1.1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        transition: var(--transition);
+    }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255,255,255,.18);
+        }
+
+        .stat-card.loading-placeholder {
+            justify-content: center;
+            background: rgba(255,255,255,.05);
+        }
+
+    .stat-ico {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.14);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+
+        .stat-ico.success {
+            background: rgba(46,204,113,.20);
+        }
+
+        .stat-ico.info {
+            background: rgba(52,152,219,.20);
+        }
+
+        .stat-ico.warn {
+            background: rgba(243,156,18,.22);
+        }
+
+    .stat-meta h3 {
+        font-size: 1.75rem;
+        font-weight: 950;
+        line-height: 1;
+        margin-bottom: .2rem;
+    }
+
+    .stat-meta p {
+        margin: 0;
+        opacity: .9;
+        font-size: .92rem;
+    }
+
+    .panel {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226,232,240,.85);
+        border-radius: var(--radius);
+        box-shadow: 0 14px 35px rgba(0,0,0,.08);
+        padding: 1.4rem;
+    }
+
+    .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 950;
+        letter-spacing: -.2px;
+    }
+
+    .link {
+        color: var(--primary);
+        font-weight: 850;
+        text-decoration: none;
+    }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+    .muted {
+        color: var(--gray);
+        font-weight: 700;
+        font-size: .9rem;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1.1fr .9fr;
+        gap: 1.2rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .9rem;
+    }
+
+    .action-card {
+        display: flex;
+        gap: .9rem;
+        align-items: flex-start;
+        padding: 1rem;
+        border-radius: 16px;
+        background: #fff;
+        border: 1px solid rgba(226,232,240,.9);
+        text-decoration: none;
+        color: var(--dark);
+        transition: var(--transition);
+    }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(67,97,238,.35);
+            box-shadow: 0 14px 30px rgba(67,97,238,.12);
+        }
+
+    .action-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 16px;
+        background: rgba(67,97,238,.10);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .action-card h3 {
+        font-size: 1.05rem;
+        font-weight: 900;
+        margin-bottom: .2rem;
+    }
+
+    .action-card p {
+        margin: 0;
+        color: var(--gray);
+        font-size: .9rem;
+    }
+
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: .9rem;
+        align-items: flex-start;
+        padding: .95rem 1rem;
+        border-radius: 16px;
+        background: #fff;
+        border: 1px solid rgba(226,232,240,.9);
+        transition: var(--transition);
+    }
+
+        .activity-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(0,0,0,.08);
+        }
+
+    .activity-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+
+        .activity-icon.success {
+            background: rgba(46,204,113,.14);
+            color: var(--success);
+        }
+
+        .activity-icon.warn {
+            background: rgba(243,156,18,.14);
+            color: var(--warning);
+        }
+
+        .activity-icon.info {
+            background: rgba(52,152,219,.14);
+            color: var(--info);
+        }
+
+        .activity-icon.primary {
+            background: rgba(67,97,238,.14);
+            color: var(--primary);
+        }
+
+        .activity-icon.danger {
+            background: rgba(231,76,60,.14);
+            color: var(--danger);
+        }
+
+    .activity-content h4 {
+        font-size: 1rem;
+        font-weight: 900;
+        margin-bottom: .2rem;
+    }
+
+    .activity-content p {
+        margin: 0 0 .25rem 0;
+        color: var(--gray);
+        font-size: .92rem;
+    }
+
+    .activity-time {
+        color: var(--gray);
+        font-size: .82rem;
+    }
+
+    .performance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: .9rem;
+        margin-top: .2rem;
+    }
+
+    .performance-card {
+        background: #fff;
+        border: 1px solid rgba(226,232,240,.9);
+        border-radius: 16px;
+        padding: 1.1rem;
+        transition: var(--transition);
+    }
+
+        .performance-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 26px rgba(0,0,0,.08);
+        }
+
+    .performance-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+        margin-bottom: .8rem;
+    }
+
+        .performance-header h3 {
+            font-size: .98rem;
+            color: var(--gray);
+            font-weight: 800;
+        }
+
+    .performance-value {
+        font-size: 1.25rem;
+        font-weight: 950;
+    }
+
+        .performance-value.success {
+            color: var(--success);
+        }
+
+        .performance-value.info {
+            color: var(--info);
+        }
+
+        .performance-value.warn {
+            color: var(--warning);
+        }
+
+    .performance-progress {
+        height: 10px;
+        background: rgba(226,232,240,.8);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        width: 0%;
+        animation: fillBar 1.1s ease forwards;
+    }
+
+    .p20 {
+        --w: 20%;
+    }
+
+    .p40 {
+        --w: 40%;
+    }
+
+    .p60 {
+        --w: 60%;
+    }
+
+    .p85 {
+        --w: 85%;
+    }
+
+    .p94 {
+        --w: 94%;
+    }
+
+    @@keyframes fillBar {
+        to {
+            width: var(--w);
+        }
+    }
+
+    .dashboard-footer {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(226,232,240,.85);
+        padding: 1.1rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .footer-left {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        color: var(--gray);
+        font-size: .92rem;
+        margin: 0;
+    }
+
+    .footer-right {
+        display: flex;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+    }
+
+        .footer-right a {
+            color: var(--gray);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            transition: var(--transition);
+            font-weight: 750;
+            font-size: .92rem;
+        }
+
+            .footer-right a:hover {
+                color: var(--primary);
+                transform: translateY(-1px);
+            }
+
+    .spinner-small {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@media (max-width: 1100px) {
+        .grid-2 {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .container {
+            padding: 0 1rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            align-items: stretch;
+            gap: .9rem;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .user-info {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .welcome-section {
+            padding: 1.4rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .logo-text h1 {
+            font-size: 1.05rem;
+        }
+
+        .breadcrumb {
+            font-size: .86rem;
+        }
+
+        .welcome-actions .btn {
+            width: 100%;
+        }
+
+        .mini-card {
+            width: 100%;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+</style>
+
+@code {
+    private ReclamationStats reclamationStats = new();
+    private List<ReclamationResponse> recentReclamations = new();
+    private bool isLoadingReclamations = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReclamationData();
+    }
+
+    private async Task LoadReclamationData()
+    {
+        try
+        {
+            isLoadingReclamations = true;
+            StateHasChanged();
+
+            // Charger les statistiques
+            reclamationStats = await ReclamationService.GetReclamationStatsAsync();
+
+            // Charger les réclamations récentes
+            var allReclamations = await ReclamationService.GetAllReclamationsAsync();
+            recentReclamations = allReclamations
+                .OrderByDescending(r => r.DateCreation)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement des données: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingReclamations = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetActivityIcon(string statut)
+    {
+        return statut switch
+        {
+            "Traitee" => "fas fa-check-circle",
+            "EnCours" => "fas fa-spinner",
+            "NonTraitee" => "fas fa-clock",
+            "Annulee" => "fas fa-ban",
+            _ => "fas fa-info-circle"
+        };
+    }
+
+    private string GetActivityIconClass(string statut)
+    {
+        return statut switch
+        {
+            "Traitee" => "success",
+            "EnCours" => "warn",
+            "NonTraitee" => "danger",
+            "Annulee" => "info",
+            _ => "info"
+        };
+    }
+
+    private string GetProgressClass(int count)
+    {
+        if (count <= 5) return "p20";
+        if (count <= 10) return "p40";
+        if (count <= 15) return "p60";
+        return "p85";
+    }
+
+    private void NavigateToReclamations(string status)
+    {
+        Navigation.NavigateTo($"/gestion-reclamations?status={status}");
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

@@ -1,0 +1,229 @@
+[
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "CreateReclamation",
+    "RelativePath": "api/Reclamations",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "Microservice2_Reclamations.Models.CreateReclamationModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "GetAllReclamations",
+    "RelativePath": "api/Reclamations",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "GetReclamationById",
+    "RelativePath": "api/Reclamations/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "UpdateReclamation",
+    "RelativePath": "api/Reclamations/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "model",
+        "Type": "Microservice2_Reclamations.Models.UpdateReclamationModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "DeleteReclamation",
+    "RelativePath": "api/Reclamations/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "AssignerResponsable",
+    "RelativePath": "api/Reclamations/{id}/assigner",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "model",
+        "Type": "Microservice2_Reclamations.Controllers.AssignResponsableModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "VerifierGarantie",
+    "RelativePath": "api/Reclamations/{id}/garantie",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dureeMois",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "UpdateStatut",
+    "RelativePath": "api/Reclamations/{id}/statut",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "model",
+        "Type": "Microservice2_Reclamations.Controllers.UpdateStatutModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "GetReclamationsByClientId",
+    "RelativePath": "api/Reclamations/clients/{clientId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "clientId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "GetMesReclamations",
+    "RelativePath": "api/Reclamations/mes-reclamations",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "clientId",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "GetMaReclamation",
+    "RelativePath": "api/Reclamations/mes-reclamations/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "clientId",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "SearchReclamations",
+    "RelativePath": "api/Reclamations/search",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "term",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Microservice2_Reclamations.Controllers.ReclamationsController",
+    "Method": "GetReclamationsByStatut",
+    "RelativePath": "api/Reclamations/statut/{statut}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "statut",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

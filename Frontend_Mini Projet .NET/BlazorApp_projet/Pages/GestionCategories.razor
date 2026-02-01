@@ -1,0 +1,4011 @@
+﻿@page "/gestion-categories"
+@using BlazorApp1.Models
+@using BlazorApp1.Services
+@using System.ComponentModel.DataAnnotations
+@inject ICategoryService CategoryService
+@inject IArticleService ArticleService
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+
+<PageTitle>Gestion des Catégories - Système SAV</PageTitle>
+
+<div class="dash-page page-enter">
+    <!-- Background blobs -->
+    <div class="bg-blobs" aria-hidden="true">
+        <span class="blob b1"></span>
+        <span class="blob b2"></span>
+        <span class="blob b3"></span>
+    </div>
+
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <a class="logo" href="/home">
+                        <span class="logo-badge">
+                            <i class="fas fa-tags icon-float"></i>
+                        </span>
+                        <div class="logo-text">
+                            <h1>Service Après-Vente</h1>
+                            <span class="logo-sub">Gestion des Catégories</span>
+                        </div>
+                    </a>
+                    <nav class="breadcrumb">
+                        <a href="/home">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                        <span class="sep">/</span>
+                        <span class="current">
+                            <i class="fas fa-tags"></i> Gestion des catégories
+                        </span>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <a href="/gestion-articles" class="btn btn-outline" title="Gestion Articles">
+                        <i class="fas fa-boxes me-2"></i>Articles
+                    </a>
+                    <button type="button" class="logout-btn" title="Déconnexion" @onclick="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="welcome-top">
+                    <div class="welcome-text">
+                        <h2>Gestion des Catégories</h2>
+                        <p>Organisez vos articles par catégories pour une meilleure gestion</p>
+
+                        <div class="welcome-actions">
+                            <button class="btn btn-primary btn-shine" @onclick="ShowCreateModal">
+                                <i class="fas fa-plus-circle icon-float me-2"></i>
+                                Nouvelle Catégorie
+                            </button>
+                            <button class="btn btn-outline" @onclick="() => showSearchFilters = !showSearchFilters">
+                                <i class="fas fa-search icon-float me-2"></i>
+                                Recherche Avancée
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="welcome-mini-cards">
+                        <div class="mini-card" @onclick="() => LoadCategories()">
+                            <div class="mini-ico">
+                                <i class="fas fa-tags icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Total Catégories</div>
+                                <div class="mini-value">@totalCategories</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card">
+                            <div class="mini-ico">
+                                <i class="fas fa-box icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Articles Total</div>
+                                <div class="mini-value">@totalArticles</div>
+                            </div>
+                        </div>
+
+                        <div class="mini-card" @onclick='() => FilterByArticles("high")'>
+                            <div class="mini-ico">
+                                <i class="fas fa-chart-bar icon-float"></i>
+                            </div>
+                            <div>
+                                <div class="mini-title">Plus peuplée</div>
+                                <div class="mini-value">@(categoriesWithMostArticles?.ArticleCount ?? 0)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="welcome-stats">
+                    <div class="stat-card">
+                        <div class="stat-ico">
+                            <i class="fas fa-tag icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>@categoriesWithMostArticles?.Name ?? "-"</h3>
+                            <p>Catégorie la plus peuplée</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-ico success">
+                            <i class="fas fa-box-open icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>@averageArticlesPerCategory</h3>
+                            <p>Moyenne d'articles</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-ico info">
+                            <i class="fas fa-calendar-plus icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>@recentCategoryDate</h3>
+                            <p>Dernière catégorie</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-ico warn">
+                            <i class="fas fa-clock icon-float"></i>
+                        </div>
+                        <div class="stat-meta">
+                            <h3>@lastUpdate</h3>
+                            <p>Dernière mise à jour</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Advanced Search Panel -->
+            @if (showSearchFilters)
+            {
+                <section class="panel search-section">
+                    <div class="panel-head">
+                        <h2 class="section-title">Recherche Avancée</h2>
+                        <button class="link" @onclick="() => showSearchFilters = false">
+                            <i class="fas fa-times"></i> Fermer
+                        </button>
+                    </div>
+
+                    <div class="search-form">
+                        <div class="search-grid">
+                            <div class="form-group">
+                                <label for="searchName">Nom de catégorie</label>
+                                <input type="text" id="searchName" class="form-input"
+                                       @bind="searchName" @bind:event="oninput"
+                                       placeholder="Nom de catégorie" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="searchDescription">Description</label>
+                                <input type="text" id="searchDescription" class="form-input"
+                                       @bind="searchDescription" @bind:event="oninput"
+                                       placeholder="Description" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="searchArticles">Nombre d'articles</label>
+                                <select id="searchArticles" class="form-select" @bind="searchArticles">
+                                    <option value="">Toutes les tailles</option>
+                                    <option value="empty">Vides (0 article)</option>
+                                    <option value="small">Petites (1-5 articles)</option>
+                                    <option value="medium">Moyennes (6-20 articles)</option>
+                                    <option value="large">Grandes (21+ articles)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="searchDate">Date de création</label>
+                                <select id="searchDate" class="form-select" @bind="searchDate">
+                                    <option value="">Toutes les dates</option>
+                                    <option value="today">Aujourd'hui</option>
+                                    <option value="week">Cette semaine</option>
+                                    <option value="month">Ce mois</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="search-actions">
+                            <button class="btn btn-primary" @onclick="ApplyFilters">
+                                <i class="fas fa-search me-2"></i>Rechercher
+                            </button>
+                            <button class="btn btn-outline" @onclick="ResetFilters">
+                                <i class="fas fa-redo me-2"></i>Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            }
+
+            <!-- Main Categories Panel -->
+            <section class="panel">
+                <div class="panel-head">
+                    <h2 class="section-title">Liste des Catégories</h2>
+                    <div class="table-actions">
+                        <div class="quick-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text"
+                                   placeholder="Recherche rapide..."
+                                   @bind="quickSearch"
+                                   @bind:event="oninput" />
+                        </div>
+                        <button class="btn-icon" title="Actualiser" @onclick="LoadCategories">
+                            <i class="fas fa-redo-alt @(isLoading ? "fa-spin" : "")"></i>
+                        </button>
+                        <button class="btn-icon" title="Exporter" @onclick="ExportCategories">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @if (isLoading)
+                {
+                    <div class="loading-state">
+                        <div class="spinner">
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                            <div class="spinner-blade"></div>
+                        </div>
+                        <p>Chargement des catégories...</p>
+                    </div>
+                }
+                else if (errorMessage != null)
+                {
+                    <div class="error-state fade-in">
+                        <div class="error-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="error-content">
+                            <h4>Une erreur est survenue</h4>
+                            <p>@errorMessage</p>
+                        </div>
+                        <button class="btn btn-outline" @onclick="LoadCategories">
+                            <i class="fas fa-redo me-2"></i>Réessayer
+                        </button>
+                    </div>
+                }
+                else if (!filteredCategories.Any())
+                {
+                    <div class="empty-state fade-in">
+                        <div class="empty-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="empty-content">
+                            <h4>Aucune catégorie trouvée</h4>
+                            <p>Commencez par créer votre première catégorie</p>
+                        </div>
+                        <button class="btn btn-primary" @onclick="ShowCreateModal">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Créer une catégorie
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <!-- Categories Table -->
+                    <div class="table-responsive slide-up">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="table-header">
+                                            <span>Catégorie</span>
+                                        </div>
+                                    </th>
+                                    <th>Description</th>
+                                    <th>Articles</th>
+                                    <th>Date de création</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var category in filteredCategories)
+                                {
+                                    <tr class="user-row fade-in">
+                                        <td>
+                                            <div class="user-cell">
+                                                <div class="user-avatar-small" style="background: linear-gradient(135deg, #7209b7, #4361ee);">
+                                                    <i class="fas fa-tag"></i>
+                                                </div>
+                                                <div class="user-info">
+                                                    <strong>@category.Name</strong>
+                                                    <small class="user-id">ID: @category.Id</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="user-fullname">
+                                                @if (!string.IsNullOrEmpty(category.Description))
+                                                {
+                                                    <span>@(category.Description.Length > 50 ? category.Description.Substring(0, 50) + "..." : category.Description)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Aucune description</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="roles-container">
+                                                <span class="role-badge @GetSizeClass(category.ArticleCount)">
+                                                    <i class="fas fa-box"></i> @category.ArticleCount article(s)
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="date-cell">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                @category.CreatedAt.ToString("dd/MM/yyyy")
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="actions-cell">
+                                                <button class="btn-action edit"
+                                                        title="Modifier"
+                                                        @onclick="() => ShowEditModal(category)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-action view"
+                                                        title="Voir les articles"
+                                                        @onclick="() => ViewCategoryArticles(category.Id)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn-action delete"
+                                                        title="Supprimer"
+                                                        @onclick="() => ConfirmDelete(category)"
+                                                        disabled="@(category.ArticleCount > 0)">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (totalPages > 1)
+                    {
+                        <div class="pagination slide-up">
+                            <button class="pagination-btn @(currentPage <= 1 ? "disabled" : "")"
+                                    @onclick="PreviousPage">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+
+                            @if (currentPage > 3)
+                            {
+                                <button class="pagination-btn" @onclick="() => GoToPage(1)">
+                                    1
+                                </button>
+                                <span class="pagination-ellipsis">...</span>
+                            }
+
+                            @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                            {
+                                <button class="pagination-btn @(currentPage == i ? "active" : "")"
+                                        @onclick="() => GoToPage(i)">
+                                    @i
+                                </button>
+                            }
+
+                            @if (currentPage < totalPages - 2)
+                            {
+                                <span class="pagination-ellipsis">...</span>
+                                <button class="pagination-btn" @onclick="() => GoToPage(totalPages)">
+                                    @totalPages
+                                </button>
+                            }
+
+                            <button class="pagination-btn @(currentPage >= totalPages ? "disabled" : "")"
+                                    @onclick="NextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    }
+
+                    <!-- Summary -->
+                    <div class="table-summary slide-up">
+                        <span class="summary-text">
+                            Affichage de <strong>@((currentPage - 1) * pageSize + 1)-@Math.Min(currentPage * pageSize, filteredCategories.Count + (currentPage - 1) * pageSize)</strong>
+                            sur <strong>@categories.Count</strong> catégories
+                        </span>
+                    </div>
+                }
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-left">
+                    <i class="fas fa-tags"></i>
+                    Gestion des Catégories © @DateTime.Now.Year - Système SAV
+                </p>
+                <div class="footer-right">
+                    <span class="footer-info">
+                        <i class="fas fa-database"></i> @categories.Count catégories
+                    </span>
+                    <span class="footer-info">
+                        <i class="fas fa-clock"></i> @DateTime.Now.ToString("HH:mm")
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL: Create Category -->
+    @if (showCreateModal)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        <h3>Créer une nouvelle catégorie</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <EditForm Model="@newCategory" OnValidSubmit="CreateCategory">
+                        <DataAnnotationsValidator />
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="categoryName" class="form-label">
+                                    <i class="fas fa-tag"></i> Nom de la catégorie *
+                                </label>
+                                <InputText id="categoryName" class="form-input" @bind-Value="newCategory.Name" />
+                                <ValidationMessage For="@(() => newCategory.Name)" class="form-error" />
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="categoryDescription" class="form-label">
+                                    <i class="fas fa-align-left"></i> Description
+                                </label>
+                                <InputTextArea id="categoryDescription" class="form-input"
+                                               @bind-Value="newCategory.Description" rows="4" />
+                                <ValidationMessage For="@(() => newCategory.Description)" class="form-error" />
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                                Annuler
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isCreating">
+                                @if (isCreating)
+                                {
+                                    <span class="spinner-small me-2"></span>
+                                }
+                                <i class="fas fa-save me-2"></i>
+                                Créer la catégorie
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- MODAL: Edit Category -->
+    @if (showEditModal && selectedCategory != null)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        <h3>Modifier la catégorie</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="user-preview">
+                        <div class="preview-avatar" style="background: linear-gradient(135deg, #7209b7, #4361ee);">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <div class="preview-info">
+                            <h4>@selectedCategory.Name</h4>
+                            <p>ID: @selectedCategory.Id | Articles: @selectedCategory.ArticleCount</p>
+                        </div>
+                    </div>
+
+                    <EditForm Model="@editCategory" OnValidSubmit="UpdateCategory">
+                        <DataAnnotationsValidator />
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="editCategoryName" class="form-label">
+                                    <i class="fas fa-tag"></i> Nom de la catégorie *
+                                </label>
+                                <InputText id="editCategoryName" class="form-input" @bind-Value="editCategory.Name" />
+                                <ValidationMessage For="@(() => editCategory.Name)" class="form-error" />
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="editCategoryDescription" class="form-label">
+                                    <i class="fas fa-align-left"></i> Description
+                                </label>
+                                <InputTextArea id="editCategoryDescription" class="form-input"
+                                               @bind-Value="editCategory.Description" rows="4" />
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                                Annuler
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isUpdating">
+                                @if (isUpdating)
+                                {
+                                    <span class="spinner-small me-2"></span>
+                                }
+                                <i class="fas fa-save me-2"></i>
+                                Enregistrer
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- MODAL: Confirm Delete -->
+    @if (showDeleteConfirm && selectedCategory != null)
+    {
+        <div class="modal-overlay fade-in" @onclick="CloseModal">
+            <div class="modal-container scale-in" @onclick:stopPropagation>
+                <div class="modal-header danger">
+                    <div class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <h3>Confirmer la suppression</h3>
+                    </div>
+                    <button class="modal-close" @onclick="CloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="warning-message">
+                        <div class="warning-icon">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <div class="warning-content">
+                            @if (selectedCategory.ArticleCount > 0)
+                            {
+                                <h4>Impossible de supprimer</h4>
+                                <p>
+                                    Cette catégorie contient <strong>@selectedCategory.ArticleCount article(s)</strong>.
+                                    Vous devez d'abord supprimer ou déplacer ces articles.
+                                </p>
+                            }
+                            else
+                            {
+                                <h4>Êtes-vous sûr de vouloir supprimer cette catégorie ?</h4>
+                                <p>Cette action est irréversible. La catégorie sera supprimée du système.</p>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="user-details-preview">
+                        <div class="detail-item">
+                            <span class="detail-label">Nom :</span>
+                            <span class="detail-value"><strong>@selectedCategory.Name</strong></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">ID :</span>
+                            <span class="detail-value">@selectedCategory.Id</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Articles :</span>
+                            <span class="detail-value">
+                                <span class="@(selectedCategory.ArticleCount > 0 ? "text-danger" : "text-success")">
+                                    @selectedCategory.ArticleCount
+                                </span>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Créée le :</span>
+                            <span class="detail-value">@selectedCategory.CreatedAt.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+
+                    @if (selectedCategory.ArticleCount == 0)
+                    {
+                        <div class="form-group full-width mt-3">
+                            <label class="form-label">
+                                <i class="fas fa-keyboard"></i> Tapez "SUPPRIMER" pour confirmer
+                            </label>
+                            <input type="text"
+                                   class="form-input"
+                                   placeholder="SUPPRIMER"
+                                   @bind="deleteConfirmationText"
+                                   @oninput="OnDeleteConfirmationChanged" />
+                        </div>
+                    }
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </button>
+                    @if (selectedCategory.ArticleCount == 0)
+                    {
+                        <button type="button"
+                                class="btn btn-danger"
+                                @onclick="DeleteCategory"
+                                disabled="@(isDeleting || deleteConfirmationText != "SUPPRIMER")">
+                            @if (isDeleting)
+                            {
+                                <span class="spinner-small me-2"></span>
+                            }
+                            <i class="fas fa-trash-alt me-2"></i>
+                            Supprimer définitivement
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+
+    :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary: #7209b7;
+        --success: #2ecc71;
+        --warning: #f39c12;
+        --info: #3498db;
+        --danger: #e74c3c;
+        --dark: #2d3748;
+        --gray: #718096;
+        --light: #f7f8fb;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --shadow: 0 14px 35px rgba(0,0,0,.10);
+        --radius: 14px;
+        --transition: all .25s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+        background: var(--light);
+        color: var(--dark);
+        line-height: 1.6;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .dash-page {
+        position: relative;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    .page-enter {
+        animation: pageEnter .35s ease both;
+    }
+
+    @@keyframes pageEnter {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bg-blobs {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    .blob {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(30px);
+        opacity: .35;
+        animation: blobFloat 10s ease-in-out infinite;
+        background: radial-gradient(circle at 30% 30%, rgba(114,9,183,.55), rgba(67,97,238,.35));
+    }
+
+    .b1 {
+        width: 420px;
+        height: 420px;
+        top: -160px;
+        left: -140px;
+    }
+
+    .b2 {
+        width: 520px;
+        height: 520px;
+        bottom: -220px;
+        right: -220px;
+        animation-delay: .6s;
+    }
+
+    .b3 {
+        width: 320px;
+        height: 320px;
+        top: 25%;
+        right: 20%;
+        opacity: .25;
+        animation-delay: 1.1s;
+    }
+
+    @@keyframes blobFloat {
+        0% {
+            transform: translateY(0) translateX(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-18px) translateX(10px) scale(1.03);
+        }
+
+        100% {
+            transform: translateY(0) translateX(0) scale(1);
+        }
+    }
+
+    .icon-float {
+        display: inline-block;
+        animation: iconFloat 3.2s ease-in-out infinite;
+    }
+
+    @@keyframes iconFloat {
+        0% {
+            transform: translateY(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-3px) scale(1.06);
+        }
+
+        100% {
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .dashboard-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(226,232,240,.8);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.4rem;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .logo-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(67,97,238,.22);
+    }
+
+    .logo-text h1 {
+        font-size: 1.1rem;
+        font-weight: 900;
+        margin: 0;
+        letter-spacing: -.2px;
+    }
+
+    .logo-sub {
+        font-size: .85rem;
+        color: var(--gray);
+        display: block;
+        margin-top: -2px;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        color: var(--gray);
+        font-size: .92rem;
+    }
+
+        .breadcrumb a {
+            color: var(--gray);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            transition: var(--transition);
+        }
+
+            .breadcrumb a:hover {
+                color: var(--primary);
+            }
+
+    .sep {
+        opacity: .6;
+    }
+
+    .current {
+        color: var(--dark);
+        font-weight: 700;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        padding: .55rem .75rem;
+        background: rgba(247,248,251,.9);
+        border: 1px solid rgba(226,232,240,.9);
+        border-radius: var(--radius);
+        box-shadow: 0 8px 20px rgba(0,0,0,.06);
+    }
+
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.25rem;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    .user-name {
+        font-weight: 800;
+        font-size: .92rem;
+    }
+
+    .back-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+        .back-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+    .dashboard-main {
+        position: relative;
+        z-index: 1;
+        padding: 1.8rem 0 2rem;
+        min-height: calc(100vh - 140px);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 18px;
+        border-radius: var(--radius);
+        font-weight: 850;
+        text-decoration: none;
+        transition: var(--transition);
+        border: 2px solid transparent;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary {
+        background: #fff;
+        color: var(--primary);
+        box-shadow: 0 14px 30px rgba(0,0,0,.12);
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn-outline {
+        background: transparent;
+        border-color: rgba(255,255,255,.55);
+        color: #fff;
+    }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,.14);
+            transform: translateY(-2px);
+        }
+
+    .btn-shine::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 70%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+        transform: skewX(-20deg);
+    }
+
+    .btn-shine:hover::before {
+        animation: shine .7s ease;
+    }
+
+    @@keyframes shine {
+        to {
+            left: 140%;
+        }
+    }
+
+    .welcome-section {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff;
+        border-radius: 18px;
+        padding: 2.2rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.6rem;
+        border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .welcome-top {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .welcome-text {
+        max-width: 760px;
+    }
+
+        .welcome-text h2 {
+            font-size: clamp(1.6rem, 3vw, 2.4rem);
+            font-weight: 950;
+            margin-bottom: .6rem;
+            letter-spacing: -.4px;
+        }
+
+        .welcome-text p {
+            opacity: .92;
+            margin-bottom: 1.2rem;
+            max-width: 640px;
+        }
+
+    .welcome-actions {
+        display: flex;
+        gap: .8rem;
+        flex-wrap: wrap;
+        margin-top: .4rem;
+    }
+
+    .welcome-mini-cards {
+        display: flex;
+        gap: .9rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .mini-card {
+        display: flex;
+        gap: .8rem;
+        align-items: center;
+        padding: .9rem 1rem;
+        border-radius: 16px;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.18);
+        backdrop-filter: blur(10px);
+        min-width: 180px;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+        .mini-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255,255,255,.16);
+        }
+
+    .mini-ico {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.16);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+
+    .mini-title {
+        font-size: .85rem;
+        opacity: .85;
+    }
+
+    .mini-value {
+        font-weight: 900;
+        letter-spacing: -.2px;
+    }
+
+    .welcome-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 1rem;
+        margin-top: 1.4rem;
+    }
+
+    .stat-card {
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 16px;
+        padding: 1.1rem 1.1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        transition: var(--transition);
+    }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255,255,255,.18);
+        }
+
+    .stat-ico {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.14);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+
+        .stat-ico.success {
+            background: rgba(46,204,113,.20);
+        }
+
+        .stat-ico.info {
+            background: rgba(52,152,219,.20);
+        }
+
+        .stat-ico.warn {
+            background: rgba(243,156,18,.22);
+        }
+
+    .stat-meta h3 {
+        font-size: 1.75rem;
+        font-weight: 950;
+        line-height: 1;
+        margin-bottom: .2rem;
+    }
+
+    .stat-meta p {
+        margin: 0;
+        opacity: .9;
+        font-size: .92rem;
+    }
+
+    .panel {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226,232,240,.85);
+        border-radius: var(--radius);
+        box-shadow: 0 14px 35px rgba(0,0,0,.08);
+        padding: 1.4rem;
+    }
+
+    .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 950;
+        letter-spacing: -.2px;
+    }
+
+    .link {
+        background: none;
+        border: none;
+        color: var(--primary);
+        font-weight: 850;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+    /* Additional styles for user management page */
+    .search-section {
+        margin-bottom: 1.5rem;
+        animation: slideDown 0.3s ease;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .search-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .search-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .search-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    .quick-search {
+        position: relative;
+        min-width: 300px;
+    }
+
+        .quick-search i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .quick-search input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: white;
+        }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    .user-name {
+        font-weight: 800;
+        font-size: .92rem;
+    }
+
+    .logout-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--danger);
+        transition: var(--transition);
+    }
+
+        .logout-btn:hover {
+            background: rgba(67,97,238,.10);
+            color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+    .quick-search input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+    .form-input, .form-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        transition: var(--transition);
+        background: white;
+    }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+    .form-select-sm {
+        padding: 0.5rem 2rem 0.5rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        background: white;
+        cursor: pointer;
+    }
+
+    .error-state, .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .error-icon, .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.7;
+    }
+
+    .error-icon {
+        color: var(--danger);
+    }
+
+    .empty-icon {
+        color: var(--gray);
+    }
+
+    .error-content, .empty-content {
+        margin-bottom: 2rem;
+    }
+
+        .error-content h4, .empty-content h4 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .error-content p, .empty-content p {
+            color: var(--gray);
+            margin: 0;
+        }
+
+    .table-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .btn-icon:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+    .loading-state {
+        padding: 4rem 2rem;
+        text-align: center;
+        color: var(--gray);
+    }
+
+    .spinner {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1rem;
+    }
+
+    .spinner-blade {
+        position: absolute;
+        left: 44.5%;
+        top: 37%;
+        width: 10%;
+        height: 25%;
+        border-radius: 50%/20%;
+        background-color: var(--primary);
+        animation: spinner-fade 1s linear infinite;
+        animation-delay: calc(var(--n) * 0.125s);
+    }
+
+        .spinner-blade:nth-child(1) {
+            --n: 1;
+            transform: rotate(0deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(2) {
+            --n: 2;
+            transform: rotate(45deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(3) {
+            --n: 3;
+            transform: rotate(90deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(4) {
+            --n: 4;
+            transform: rotate(135deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(5) {
+            --n: 5;
+            transform: rotate(180deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(6) {
+            --n: 6;
+            transform: rotate(225deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(7) {
+            --n: 7;
+            transform: rotate(270deg) translate(0, -150%);
+        }
+
+        .spinner-blade:nth-child(8) {
+            --n: 8;
+            transform: rotate(315deg) translate(0, -150%);
+        }
+
+    @@keyframes spinner-fade {
+        0% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0.15;
+        }
+    }
+
+    .spinner-small {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar-small {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .user-id {
+        font-size: 0.8rem;
+        color: var(--gray);
+    }
+
+    .user-fullname {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .user-phone {
+        font-size: 0.85rem;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .roles-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .role-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        transition: var(--transition);
+    }
+
+        .role-badge.client {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .role-badge.responsablesav {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+
+        .role-badge.admin {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.2);
+        }
+
+        .role-badge.none {
+            background: rgba(113, 128, 150, 0.1);
+            color: var(--gray);
+            border: 1px solid rgba(113, 128, 150, 0.2);
+        }
+
+    .actions-cell {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        color: white;
+        font-size: 0.9rem;
+    }
+
+        .btn-action.edit {
+            background: var(--info);
+        }
+
+        .btn-action.role {
+            background: var(--primary);
+        }
+
+        .btn-action.delete {
+            background: var(--danger);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 2rem 0 1rem;
+    }
+
+    .pagination-btn {
+        min-width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-weight: 600;
+    }
+
+        .pagination-btn:hover:not(.disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .pagination-ellipsis {
+        color: var(--gray);
+        padding: 0 0.5rem;
+    }
+
+    .table-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-top: 1px solid var(--border);
+        background: rgba(247, 248, 251, 0.5);
+    }
+
+    .summary-text {
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+        .summary-text strong {
+            color: var(--dark);
+        }
+
+    .summary-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+    }
+
+    .modal-container {
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .modal-header.danger {
+            background: linear-gradient(135deg, rgba(231,76,60,0.1), rgba(192,57,43,0.05));
+            border-bottom: 1px solid rgba(231,76,60,0.2);
+        }
+
+    .modal-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .modal-title h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+    .modal-close {
+        background: none;
+        border: none;
+        color: var(--gray);
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-error {
+        color: var(--danger);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--gray);
+        border: 1px solid var(--border);
+    }
+
+        .btn-secondary:hover {
+            background: rgba(247, 248, 251, 0.8);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        border: none;
+    }
+
+        .btn-danger:hover:not(:disabled) {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+        }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .user-preview {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: 12px;
+    }
+
+    .preview-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .preview-info h4 {
+        margin: 0;
+        font-size: 1.125rem;
+        font-weight: 700;
+    }
+
+    .preview-info p {
+        margin: 0.25rem 0 0 0;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .current-roles {
+        margin-bottom: 1.5rem;
+    }
+
+        .current-roles h5 {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+
+    .roles-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .role-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(247, 248, 251, 0.5);
+        padding: 0.5rem 0.75rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .role-remove {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        border: none;
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.75rem;
+    }
+
+        .role-remove:hover:not(:disabled) {
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        .role-remove:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .no-roles {
+        padding: 1rem;
+        text-align: center;
+        color: var(--gray);
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: 12px;
+        border: 1px dashed var(--border);
+    }
+
+    .add-role-section {
+        margin-bottom: 1.5rem;
+    }
+
+        .add-role-section h5 {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+
+    .role-selector {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .select-wrapper {
+        flex: 1;
+        position: relative;
+    }
+
+        .select-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            pointer-events: none;
+        }
+
+        .select-wrapper .form-select {
+            padding-left: 3rem;
+        }
+
+    .warning-message {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(231, 76, 60, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+
+    .warning-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(231, 76, 60, 0.2);
+        color: var(--danger);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .warning-content h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--danger);
+        font-size: 1.125rem;
+    }
+
+    .warning-content p {
+        margin: 0;
+        color: var(--gray);
+    }
+    /* Styles pour la carte d'information du rôle */
+    .role-info-card {
+        background: linear-gradient(135deg, rgba(247, 248, 251, 0.8), rgba(255, 255, 255, 0.9));
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .info-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .role-avatar-small {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--danger), #c0392b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .role-title h4 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: var(--dark);
+    }
+
+    .role-type-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+        .role-type-badge.system {
+            background: rgba(155, 89, 182, 0.15);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.3);
+        }
+
+        .role-type-badge.custom {
+            background: rgba(52, 152, 219, 0.15);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+    .info-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+        .info-item i {
+            color: var(--primary);
+            width: 20px;
+            text-align: center;
+        }
+
+    /* Conséquences de la suppression */
+    .consequences-warning {
+        background: rgba(243, 156, 18, 0.1);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        border: 1px solid rgba(243, 156, 18, 0.2);
+        margin: 1.5rem 0;
+    }
+
+        .consequences-warning h5 {
+            color: var(--warning);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+
+    .consequences-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .consequences-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            color: var(--dark);
+        }
+
+            .consequences-list li i {
+                color: var(--warning);
+                width: 20px;
+            }
+
+    /* Style pour la confirmation réussie */
+    .confirmation-success {
+        border-color: var(--success) !important;
+        background-color: rgba(46, 204, 113, 0.05) !important;
+        box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.1) !important;
+    }
+
+    .user-details-preview {
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+    .detail-label {
+        color: var(--gray);
+        font-weight: 600;
+    }
+
+    .detail-value {
+        color: var(--dark);
+        font-weight: 500;
+    }
+
+    .alert {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+        border: 1px solid transparent;
+    }
+
+    .alert-info {
+        background: rgba(52, 152, 219, 0.1);
+        border-color: rgba(52, 152, 219, 0.2);
+        color: var(--info);
+    }
+
+    .dashboard-footer {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(226,232,240,.85);
+        padding: 1.1rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .footer-left {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        color: var(--gray);
+        font-size: .92rem;
+        margin: 0;
+    }
+
+    .footer-right {
+        display: flex;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+    }
+
+    .footer-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    /* Animations */
+    .fade-in {
+        animation: fadeIn 0.3s ease both;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .slide-up {
+        animation: slideUp 0.4s ease both;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .scale-in {
+        animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    @@keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .users-table thead {
+            background: rgba(247, 248, 251, 0.8);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .users-table th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+    .table-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .users-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: var(--transition);
+    }
+
+        .users-table tbody tr:hover {
+            background: rgba(67, 97, 238, 0.03);
+        }
+
+    .users-table td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+    }
+
+    .user-row {
+        animation: rowEnter 0.4s ease both;
+        animation-delay: calc(var(--row-index) * 0.05s);
+    }
+
+    @@keyframes rowEnter {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .email-link {
+        color: var(--primary);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: var(--transition);
+    }
+
+        .email-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+    .date-cell {
+        display: flex;
+        align-items: center;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .container {
+            padding: 0 1rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            align-items: stretch;
+            gap: .9rem;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .user-info {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .search-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .table-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .quick-search {
+            min-width: auto;
+            width: 100%;
+        }
+
+        .pagination {
+            flex-wrap: wrap;
+        }
+
+        .table-summary {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .logo-text h1 {
+            font-size: 1.05rem;
+        }
+
+        .breadcrumb {
+            font-size: .86rem;
+        }
+
+        .welcome-actions .btn {
+            width: 100%;
+        }
+
+        .mini-card {
+            width: 100%;
+        }
+
+        .search-actions {
+            flex-direction: column;
+        }
+
+            .search-actions .btn {
+                width: 100%;
+            }
+
+        .roles-container {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .role-selector {
+            flex-direction: column;
+        }
+
+        .modal-footer {
+            flex-direction: column;
+        }
+
+            .modal-footer .btn {
+                width: 100%;
+            }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+
+
+    /* Reuse all existing styles from gestion-utilisateur */
+    /* Add specific styles for roles management */
+
+    .permissions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .permission-category {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+        .permission-category h4 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+    .permission-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .permission-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        transition: var(--transition);
+    }
+
+        .permission-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+    .permission-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+        color: white;
+    }
+
+        .permission-badge.admin {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .permission-badge.responsable {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .permission-badge.client {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+    .permission-item p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+
+    .roles-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .roles-table thead {
+            background: rgba(247, 248, 251, 0.8);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .roles-table th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .roles-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+            .roles-table tbody tr:hover {
+                background: rgba(67, 97, 238, 0.03);
+            }
+
+        .roles-table td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+        }
+
+    .role-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .role-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .role-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+        .role-info strong {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+    .role-desc {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .role-id {
+        background: rgba(247, 248, 251, 0.5);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-family: 'Monaco', 'Consolas', monospace;
+        font-size: 0.85rem;
+        color: var(--primary);
+    }
+
+    .role-type {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+        .role-type.system {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+            border: 1px solid rgba(155, 89, 182, 0.2);
+        }
+
+        .role-type.custom {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+
+    .permissions-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        max-width: 200px;
+    }
+
+    .perm-tag {
+        padding: 0.25rem 0.5rem;
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid rgba(67, 97, 238, 0.2);
+    }
+
+    .perm-tag-sm {
+        padding: 0.125rem 0.375rem;
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+        border-radius: 8px;
+        font-size: 0.7rem;
+        border: 1px solid rgba(67, 97, 238, 0.2);
+        display: inline-block;
+        margin: 0.125rem;
+    }
+
+    .user-count {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .count-badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .system-badge {
+        padding: 0.5rem 1rem;
+        background: rgba(113, 128, 150, 0.1);
+        color: var(--gray);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(113, 128, 150, 0.2);
+    }
+
+    .permissions-selector {
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+    }
+
+    .permission-category-select {
+        margin-bottom: 1.5rem;
+    }
+
+        .permission-category-select:last-child {
+            margin-bottom: 0;
+        }
+
+        .permission-category-select h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+    .permission-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: var(--transition);
+        user-select: none;
+    }
+
+        .permission-checkbox:hover {
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .permission-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+    .checkmark {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+
+    .permission-checkbox input[type="checkbox"]:checked + .checkmark {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .checkmark:after {
+        content: "✓";
+        color: white;
+        font-size: 0.875rem;
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .permission-checkbox input[type="checkbox"]:checked + .checkmark:after {
+        opacity: 1;
+    }
+
+    .users-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        min-height: 44px;
+        padding: 1rem;
+        background: rgba(247, 248, 251, 0.5);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+    }
+
+    .user-tag {
+        padding: 0.5rem 0.75rem;
+        background: white;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .no-users {
+        color: var(--gray);
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-warning {
+        background: rgba(243, 156, 18, 0.1);
+        border-color: rgba(243, 156, 18, 0.2);
+        color: var(--warning);
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+        .alert-warning i {
+            font-size: 1.1rem;
+        }
+
+    .filter-indicator {
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .form-hint {
+        color: var(--gray);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .role-row {
+        animation: rowEnter 0.4s ease both;
+        animation-delay: calc(var(--row-index) * 0.05s);
+    }
+
+    @@keyframes rowEnter {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Notifications */
+    .notifications-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-width: 420px;
+        pointer-events: none;
+    }
+
+    .notification {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: 0 10px 25px rgba(0,0,0,.15), 0 5px 10px rgba(0,0,0,.1);
+        padding: 1.25rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        border-left: 4px solid;
+        transform: translateX(120%);
+        opacity: 0;
+        pointer-events: all;
+        animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .notification.slide-out {
+            animation: slideOutRight 0.3s ease forwards;
+        }
+
+        .notification.success {
+            border-left-color: var(--success);
+            background: linear-gradient(to right, rgba(46,204,113,0.05), white);
+        }
+
+        .notification.error {
+            border-left-color: var(--danger);
+            background: linear-gradient(to right, rgba(231,76,60,0.05), white);
+        }
+
+        .notification.warning {
+            border-left-color: var(--warning);
+            background: linear-gradient(to right, rgba(243,156,18,0.05), white);
+        }
+
+        .notification.info {
+            border-left-color: var(--info);
+            background: linear-gradient(to right, rgba(52,152,219,0.05), white);
+        }
+
+    .notification-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .notification.success .notification-icon {
+        background: rgba(46,204,113,0.15);
+        color: var(--success);
+    }
+
+    .notification.error .notification-icon {
+        background: rgba(231,76,60,0.15);
+        color: var(--danger);
+    }
+
+    .notification.warning .notification-icon {
+        background: rgba(243,156,18,0.15);
+        color: var(--warning);
+    }
+
+    .notification.info .notification-icon {
+        background: rgba(52,152,219,0.15);
+        color: var(--info);
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 850;
+        font-size: 1rem;
+        margin-bottom: 0.375rem;
+        color: var(--dark);
+    }
+
+    .notification-message {
+        color: var(--gray);
+        font-size: 0.925rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: var(--gray);
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 6px;
+        transition: var(--transition);
+        opacity: 0.7;
+        flex-shrink: 0;
+    }
+
+        .notification-close:hover {
+            opacity: 1;
+            background: rgba(0,0,0,.05);
+        }
+
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: currentColor;
+        opacity: 0.3;
+        animation: progress 5s linear forwards;
+    }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+    }
+
+    @@keyframes progress {
+        from {
+            width: 100%;
+        }
+
+        to {
+            width: 0%;
+        }
+    }
+
+    /* Confirmation de suppression améliorée */
+    .delete-animation {
+        display: flex;
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+
+    .trash-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        animation: pulseDanger 1.5s ease-in-out infinite;
+        position: relative;
+    }
+
+        .trash-icon::before {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            border: 2px dashed rgba(231,76,60,0.3);
+            border-radius: 50%;
+            animation: rotate 10s linear infinite;
+        }
+
+    @@keyframes pulseDanger {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(231,76,60,0.4);
+        }
+
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 10px rgba(231,76,60,0);
+        }
+    }
+
+    @@keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Amélioration du message de confirmation */
+    .confirmation-message {
+        text-align: center;
+        padding: 1rem;
+        border-radius: var(--radius);
+        background: rgba(247,248,251,0.5);
+        border: 1px solid var(--border);
+        margin: 1rem 0;
+    }
+
+    .confirmation-title {
+        font-size: 1.25rem;
+        font-weight: 850;
+        color: var(--danger);
+        margin-bottom: 0.5rem;
+    }
+
+    .confirmation-subtitle {
+        color: var(--gray);
+        margin-bottom: 1rem;
+    }
+
+    /* Liste des impacts */
+    .impact-list {
+        margin: 1.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .impact-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(247,248,251,0.5);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+
+    .impact-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .impact-item.warning .impact-icon {
+        background: rgba(243,156,18,0.1);
+        color: var(--warning);
+    }
+
+    .impact-item.info .impact-icon {
+        background: rgba(52,152,219,0.1);
+        color: var(--info);
+    }
+
+    .impact-text {
+        flex: 1;
+        font-size: 0.925rem;
+    }
+
+    .impact-label {
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .impact-detail {
+        color: var(--gray);
+        font-size: 0.85rem;
+        margin-top: 0.125rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .bg-danger {
+        background: var(--danger);
+        color: white;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .permissions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .permissions-preview {
+            max-width: 100%;
+        }
+
+        .role-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .role-avatar {
+            align-self: flex-start;
+        }
+
+        .notifications-container {
+            left: 1rem;
+            right: 1rem;
+            max-width: none;
+        }
+    }
+
+
+    .articles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .article-card {
+        background: var(--card);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        transition: var(--transition);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+    .article-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        background: rgba(247,248,251,0.5);
+    }
+
+    .article-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+        .article-status.available {
+            background: rgba(46,204,113,0.1);
+            color: var(--success);
+            border: 1px solid rgba(46,204,113,0.2);
+        }
+
+        .article-status.outofstock {
+            background: rgba(231,76,60,0.1);
+            color: var(--danger);
+            border: 1px solid rgba(231,76,60,0.2);
+        }
+
+        .article-status i {
+            font-size: 0.65rem;
+        }
+
+    .article-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .article-card-body {
+        padding: 1.5rem;
+    }
+
+    .article-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+    }
+
+    .article-info {
+        text-align: center;
+    }
+
+    .article-reference {
+        font-size: 1.25rem;
+        font-weight: 900;
+        color: var(--primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .article-designation {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.75rem;
+    }
+
+    .article-description {
+        color: var(--gray);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .article-category {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(67,97,238,0.1);
+        color: var(--primary);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .article-dates {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .date-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .article-card-footer {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border);
+        background: rgba(247,248,251,0.5);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .price-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+
+        .price-row strong {
+            font-size: 1rem;
+        }
+
+    .warranty-section {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .warranty-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+        .warranty-badge.active {
+            background: rgba(52,152,219,0.1);
+            color: var(--info);
+            border: 1px solid rgba(52,152,219,0.2);
+        }
+
+        .warranty-badge.none {
+            background: rgba(113,128,150,0.1);
+            color: var(--gray);
+            border: 1px solid rgba(113,128,150,0.2);
+        }
+
+    .btn-check-warranty {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .btn-check-warranty:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+    /* Vue Table */
+    .articles-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .articles-table thead {
+            background: rgba(247,248,251,0.8);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .articles-table th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .articles-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+            .articles-table tbody tr:hover {
+                background: rgba(67,97,238,0.03);
+            }
+
+        .articles-table td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+        }
+
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(67,97,238,0.1);
+        color: var(--primary);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .warranty-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+        .warranty-indicator.has-warranty {
+            background: rgba(52,152,219,0.1);
+            color: var(--info);
+            border: 1px solid rgba(52,152,219,0.2);
+        }
+
+        .warranty-indicator.no-warranty {
+            background: rgba(113,128,150,0.1);
+            color: var(--gray);
+            border: 1px solid rgba(113,128,150,0.2);
+        }
+
+    .status-badge {
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+        .status-badge.available {
+            background: rgba(46,204,113,0.1);
+            color: var(--success);
+            border: 1px solid rgba(46,204,113,0.2);
+        }
+
+        .status-badge.outofstock {
+            background: rgba(231,76,60,0.1);
+            color: var(--danger);
+            border: 1px solid rgba(231,76,60,0.2);
+        }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+        .view-toggle .btn-icon.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+    .warranty-check {
+        padding: 1rem 0;
+    }
+
+    .article-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(247,248,251,0.5);
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+    }
+
+    .article-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .warranty-result {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        border-radius: var(--radius);
+        margin: 1.5rem 0;
+    }
+
+        .warranty-result.valid {
+            background: rgba(46,204,113,0.1);
+            border: 1px solid rgba(46,204,113,0.2);
+        }
+
+        .warranty-result.expired {
+            background: rgba(231,76,60,0.1);
+            border: 1px solid rgba(231,76,60,0.2);
+        }
+
+    .result-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .warranty-result.valid .result-icon {
+        color: var(--success);
+    }
+
+    .warranty-result.expired .result-icon {
+        color: var(--danger);
+    }
+
+    .result-content h4 {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .article-details {
+        background: rgba(247,248,251,0.5);
+        border-radius: var(--radius);
+        padding: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(226,232,240,0.5);
+    }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+    .text-end {
+        text-align: right;
+    }
+
+    .text-success {
+        color: var(--success) !important;
+    }
+
+    .text-info {
+        color: var(--info) !important;
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 2px solid var(--border);
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .articles-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .article-card-footer {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .warranty-section {
+            align-self: flex-end;
+        }
+
+        .articles-table {
+            display: block;
+            overflow-x: auto;
+        }
+ 
+
+    /* Les styles de la page utilisateur sont déjà inclus */
+    /* J'ajoute juste quelques styles spécifiques aux catégories */
+    .btn-action.view {
+        background: var(--warning);
+    }
+
+    .role-badge.empty {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+
+    .role-badge.small {
+        background: rgba(52, 152, 219, 0.1);
+        color: var(--info);
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+
+    .role-badge.medium {
+        background: rgba(155, 89, 182, 0.1);
+        color: #9b59b6;
+        border: 1px solid rgba(155, 89, 182, 0.2);
+    }
+
+    .role-badge.large {
+        background: rgba(46, 204, 113, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(46, 204, 113, 0.2);
+    }
+
+    .text-muted {
+        color: var(--gray);
+        font-style: italic;
+    }
+</style>
+
+@code {
+    // Data
+    private List<CategoryResponse> categories = new();
+    private List<CategoryResponse> filteredCategories = new();
+    private CategoryResponse? selectedCategory;
+    private CategoryResponse? categoriesWithMostArticles;
+
+    // Forms
+    private CategoryCreateDto newCategory = new();
+    private CategoryUpdateDto editCategory = new();
+
+    // UI State
+    private bool isLoading = false;
+    private bool isCreating = false;
+    private bool isUpdating = false;
+    private bool isDeleting = false;
+    private bool showCreateModal = false;
+    private bool showEditModal = false;
+    private bool showDeleteConfirm = false;
+    private bool showSearchFilters = false;
+
+    // Search filters
+    private string quickSearch = "";
+    private string searchName = "";
+    private string searchDescription = "";
+    private string searchArticles = "";
+    private string searchDate = "";
+
+    private string? errorMessage;
+    private string deleteConfirmationText = "";
+    private string recentCategoryDate = "-";
+    private string lastUpdate = DateTime.Now.ToString("HH:mm");
+
+    // Statistics
+    private int totalCategories = 0;
+    private int totalArticles = 0;
+    private int averageArticlesPerCategory = 0;
+
+    // Pagination
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            StateHasChanged();
+
+            // Load categories
+            categories = await CategoryService.GetAllCategoriesAsync();
+
+            // Load articles for statistics
+            var articles = await ArticleService.GetAllArticlesAsync();
+
+            // Calculate statistics
+            CalculateStatistics(categories, articles);
+
+            // Apply filters
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur de chargement: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            lastUpdate = DateTime.Now.ToString("HH:mm");
+            StateHasChanged();
+        }
+    }
+
+    private void CalculateStatistics(List<CategoryResponse> categoriesList, List<ArticleResponse> articlesList)
+    {
+        totalCategories = categoriesList.Count;
+        totalArticles = articlesList.Count;
+
+        // Update article counts in categories
+        foreach (var category in categoriesList)
+        {
+            category.ArticleCount = articlesList.Count(a => a.CategoryId == category.Id);
+        }
+
+        // Find category with most articles
+        categoriesWithMostArticles = categoriesList
+            .OrderByDescending(c => c.ArticleCount)
+            .FirstOrDefault();
+
+        // Calculate average
+        averageArticlesPerCategory = totalCategories > 0 ? totalArticles / totalCategories : 0;
+
+        // Find most recent category
+        var recentCategory = categoriesList
+            .OrderByDescending(c => c.CreatedAt)
+            .FirstOrDefault();
+
+        if (recentCategory != null)
+        {
+            recentCategoryDate = recentCategory.CreatedAt.ToString("dd/MM/yyyy");
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        try
+        {
+            var filtered = categories.AsEnumerable();
+
+            // Quick search filter
+            if (!string.IsNullOrWhiteSpace(quickSearch))
+            {
+                var query = quickSearch.ToLower();
+                filtered = filtered.Where(c =>
+                    c.Name.ToLower().Contains(query) ||
+                    (c.Description != null && c.Description.ToLower().Contains(query))
+                );
+            }
+
+            // Advanced search filters
+            if (!string.IsNullOrWhiteSpace(searchName))
+            {
+                filtered = filtered.Where(c =>
+                    c.Name.Contains(searchName, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchDescription))
+            {
+                filtered = filtered.Where(c =>
+                    c.Description?.Contains(searchDescription, StringComparison.OrdinalIgnoreCase) ?? false);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchArticles))
+            {
+                filtered = searchArticles switch
+                {
+                    "empty" => filtered.Where(c => c.ArticleCount == 0),
+                    "small" => filtered.Where(c => c.ArticleCount >= 1 && c.ArticleCount <= 5),
+                    "medium" => filtered.Where(c => c.ArticleCount >= 6 && c.ArticleCount <= 20),
+                    "large" => filtered.Where(c => c.ArticleCount > 20),
+                    _ => filtered
+                };
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchDate))
+            {
+                DateTime startDate = searchDate switch
+                {
+                    "today" => DateTime.Today,
+                    "week" => DateTime.Today.AddDays(-7),
+                    "month" => DateTime.Today.AddMonths(-1),
+                    _ => DateTime.MinValue
+                };
+
+                if (startDate != DateTime.MinValue)
+                {
+                    filtered = filtered.Where(c => c.CreatedAt >= startDate);
+                }
+            }
+
+            // Sort by article count (descending)
+            filtered = filtered.OrderByDescending(c => c.ArticleCount);
+
+            // Calculate pagination
+            var filteredList = filtered.ToList();
+            totalPages = (int)Math.Ceiling((double)filteredList.Count / pageSize);
+
+            if (currentPage > totalPages)
+                currentPage = Math.Max(1, totalPages);
+
+            // Apply pagination
+            int startIndex = (currentPage - 1) * pageSize;
+            filteredCategories = filteredList.Skip(startIndex).Take(pageSize).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors de l'application des filtres: {ex.Message}";
+        }
+    }
+
+    private void ResetFilters()
+    {
+        quickSearch = "";
+        searchName = "";
+        searchDescription = "";
+        searchArticles = "";
+        searchDate = "";
+        currentPage = 1;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private string GetSizeClass(int articleCount) => articleCount switch
+    {
+        0 => "empty",
+        <= 5 => "small",
+        <= 20 => "medium",
+        _ => "large"
+    };
+
+    private void FilterByArticles(string size)
+    {
+        searchArticles = size;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    // Modal Methods
+    private void ShowCreateModal()
+    {
+        newCategory = new CategoryCreateDto();
+        showCreateModal = true;
+        StateHasChanged();
+    }
+
+    private void ShowEditModal(CategoryResponse category)
+    {
+        selectedCategory = category;
+        editCategory = new CategoryUpdateDto
+        {
+            Name = category.Name,
+            Description = category.Description ?? ""
+        };
+        showEditModal = true;
+        StateHasChanged();
+    }
+
+    private void ConfirmDelete(CategoryResponse category)
+    {
+        selectedCategory = category;
+        showDeleteConfirm = true;
+        deleteConfirmationText = "";
+        StateHasChanged();
+    }
+
+    private void CloseModal()
+    {
+        showCreateModal = false;
+        showEditModal = false;
+        showDeleteConfirm = false;
+        selectedCategory = null;
+        deleteConfirmationText = "";
+        StateHasChanged();
+    }
+
+    private void OnDeleteConfirmationChanged(ChangeEventArgs e)
+    {
+        deleteConfirmationText = e.Value?.ToString() ?? string.Empty;
+        StateHasChanged();
+    }
+
+    // Navigation
+    private void ViewCategoryArticles(int categoryId)
+    {
+        Navigation.NavigateTo($"/gestion-articles?category={categoryId}");
+    }
+
+    // CRUD Operations
+    private async Task CreateCategory()
+    {
+        try
+        {
+            isCreating = true;
+            StateHasChanged();
+
+            var result = await CategoryService.CreateCategoryAsync(newCategory);
+
+            if (result != null)
+            {
+                CloseModal();
+                await LoadCategories();
+            }
+            else
+            {
+                errorMessage = "Échec de la création de la catégorie";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isCreating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdateCategory()
+    {
+        if (selectedCategory == null) return;
+
+        try
+        {
+            isUpdating = true;
+            StateHasChanged();
+
+            var result = await CategoryService.UpdateCategoryAsync(selectedCategory.Id, editCategory);
+
+            if (result != null)
+            {
+                CloseModal();
+                await LoadCategories();
+            }
+            else
+            {
+                errorMessage = "Échec de la modification de la catégorie";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isUpdating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteCategory()
+    {
+        if (selectedCategory == null) return;
+
+        // Check if category has articles
+        if (selectedCategory.ArticleCount > 0)
+        {
+            errorMessage = "Impossible de supprimer une catégorie contenant des articles";
+            return;
+        }
+
+        try
+        {
+            isDeleting = true;
+            StateHasChanged();
+
+            var success = await CategoryService.DeleteCategoryAsync(selectedCategory.Id);
+
+            if (success)
+            {
+                CloseModal();
+                await LoadCategories();
+            }
+            else
+            {
+                errorMessage = "Échec de la suppression de la catégorie";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isDeleting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    // Pagination
+    private void PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+            ApplyFilters();
+            StateHasChanged();
+        }
+    }
+
+    private void NextPage()
+    {
+        if (currentPage < totalPages)
+        {
+            currentPage++;
+            ApplyFilters();
+            StateHasChanged();
+        }
+    }
+
+    private void GoToPage(int page)
+    {
+        currentPage = page;
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ExportCategories()
+    {
+        try
+        {
+            var csv = "Nom,Description,Articles,Créé le\n";
+            foreach (var category in categories)
+            {
+                csv += $"\"{category.Name}\",\"{category.Description ?? ""}\",\"{category.ArticleCount}\",\"{category.CreatedAt:yyyy-MM-dd}\"\n";
+            }
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+            var base64 = Convert.ToBase64String(bytes);
+            Navigation.NavigateTo($"data:text/csv;base64,{base64}", true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors de l'export: {ex.Message}";
+            StateHasChanged();
+        }
+    }
+}

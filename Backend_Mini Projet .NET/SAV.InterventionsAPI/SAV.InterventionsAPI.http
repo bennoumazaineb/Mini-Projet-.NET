@@ -1,0 +1,6 @@
+@SAV.InterventionsAPI_HostAddress = http://localhost:5117
+
+GET {{SAV.InterventionsAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
